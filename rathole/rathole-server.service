@@ -1,0 +1,23 @@
+# Unidad systemd para rathole server en el VPS.
+# Instalar:
+#   sudo cp rathole-server.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now rathole-server
+#
+# Ajustar ExecStart si el binario o el server.toml quedan en otra ruta.
+
+[Unit]
+Description=rathole server (túnel público galaxIA demo)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rathole /opt/galaxia-gitops/rathole/server.toml
+Restart=on-failure
+RestartSec=5
+User=rathole
+WorkingDirectory=/opt/galaxia-gitops/rathole
+
+[Install]
+WantedBy=multi-user.target

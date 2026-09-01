@@ -1,0 +1,25 @@
+# rathole client — corre en Bastion (detrás del NAT doméstico).
+# Generar client.toml real con:
+#   set -a && source ../.env && set +a && envsubst < client.toml.example > client.toml
+#
+# Apunta a los puertos que los contenedores FHS ya publican en Bastion hoy
+# (127.0.0.1, no la IP de red — el túnel corre en el mismo host) — cero
+# cambios en cómo corren esos contenedores.
+
+[client]
+remote_addr = "${VPS_HOST}:${PORT_RATHOLE_CONTROL}"
+
+[client.transport]
+type = "noise"
+
+[client.services.portal-chat]
+token = "${RATHOLE_TOKEN}"
+local_addr = "127.0.0.1:8443"
+
+[client.services.atlas]
+token = "${RATHOLE_TOKEN}"
+local_addr = "127.0.0.1:4001"
+
+[client.services.navigator]
+token = "${RATHOLE_TOKEN}"
+local_addr = "127.0.0.1:4010"

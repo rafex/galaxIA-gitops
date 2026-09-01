@@ -1,0 +1,11 @@
+# Secretos reales — nunca commitear
+.env
+rathole/*.toml
+!rathole/*.toml.example
+*.pem
+*.key
+*.crt
+!certbot/**/*.sh
+
+# OS
+.DS_Store

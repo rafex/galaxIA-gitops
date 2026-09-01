@@ -1,0 +1,29 @@
+# rathole server — corre en el VPS (punto de entrada público).
+# Generar server.toml real con:
+#   set -a && source ../.env && set +a && envsubst < server.toml.example > server.toml
+#
+# Puerto 80 queda deliberadamente SIN tunelear — lo usa certbot en el VPS
+# para el desafío HTTP-01 en cada renovación (ver ../certbot/issue-cert.sh).
+
+[server]
+bind_addr = "0.0.0.0:${PORT_RATHOLE_CONTROL}"
+
+[server.transport]
+type = "noise"
+
+# portal-chat: frontend HTTPS. El navegador entra por acá.
+[server.services.portal-chat]
+token = "${RATHOLE_TOKEN}"
+bind_addr = "0.0.0.0:${PORT_PORTAL_CHAT}"
+
+# atlas: bootstrap P2P. El navegador dialea esto directamente (ver
+# apps/portal-chat/src/services/p2p-discovery.ts en galaxIA-Core).
+[server.services.atlas]
+token = "${RATHOLE_TOKEN}"
+bind_addr = "0.0.0.0:${PORT_ATLAS}"
+
+# navigator: el navegador también dialea esto directamente una vez que
+# lo descubre vía GossipSub/DHT — no solo Atlas.
+[server.services.navigator]
+token = "${RATHOLE_TOKEN}"
+bind_addr = "0.0.0.0:${PORT_NAVIGATOR}"
