@@ -66,6 +66,7 @@ advertencia.
 | `rathole/*.service` | Unidades systemd para correr ambos como servicio |
 | `certbot/issue-cert.sh` | Emisión inicial del certificado (HTTP-01, standalone) |
 | `certbot/renewal-hooks/deploy/sync-to-bastion.sh` | Hook que corre en cada renovación: copia el cert nuevo a Bastion y reinicia los contenedores |
+| `scripts/doctor.sh` | Diagnóstico de red desde la máquina de la demo: portal, bootstrap y Navigator (TCP, TLS, SAN, vencimiento), reloj y malla P2P — ✅/⚠️/❌ con pista por fila |
 | `docs/acceso-remoto-demo.md` | Diseño completo, decisiones y guía paso a paso |
 | `.env.example` | Variables a completar (dominio, IP del VPS, token) — **nunca commitear `.env`** |
 
@@ -83,6 +84,12 @@ bash certbot/issue-cert.sh
 # En Bastion:
 #  copiar rathole/client.toml.example a client.toml sustituyendo placeholders
 #  correr rathole client (ver rathole/rathole-client.service)
+```
+
+Antes de cualquier demo, desde la laptop que va a abrir el portal:
+
+```bash
+scripts/doctor.sh https://<subdominio-o-ip-del-portal>
 ```
 
 Guía completa con cada paso: [`docs/acceso-remoto-demo.md`](docs/acceso-remoto-demo.md).

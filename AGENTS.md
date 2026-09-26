@@ -13,11 +13,12 @@ llevar el hardware físico a cada demo.
 No hay código de aplicación aquí. El código vive en:
 - `galaxIA-Core` — Atlas, Navigator, Portal Chat
 - `galaxIA-satellite-star` — Star y los providers de referencia (OCR, RAG, KB)
-- `galaxIA-SDK` — paquetes TS/WASM publicados (`fhs-protocol`, `fhs-node`)
+- `galaxIA-SDK` — paquetes TS/WASM publicados (`fhs-protocol`, `satellite-capabilities`)
 - `galaxIA` — el IDL/spec del protocolo
 
 Este repo **no compila, no tiene tests, no tiene CI**. Es scripts + TOML +
-docs, operados a mano contra hardware real.
+docs, operados a mano contra hardware real. `scripts/doctor.sh` es el punto de
+entrada para diagnosticar una red nueva: correrlo antes de tocar nada más.
 
 ## Regla de seguridad — este repo es público
 

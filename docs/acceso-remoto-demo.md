@@ -127,8 +127,18 @@ El navegador de un asistente a la demo abre `https://<subdominio>/`
 y dialea todo bajo el mismo dominio real con certificado válido — sin
 ninguna advertencia de seguridad.
 
+## Qué NO se tunela
+
+Solo `443` (portal), `4001` (Atlas) y `4010` (Navigator). Las APIs de
+observabilidad `8081` (Atlas `/status`) y `8090` (Navigator `/health` y
+`/status`) quedan **solo en la LAN**: exponen la topología (peers,
+direcciones, providers conocidos). `scripts/doctor.sh` lo sabe y, detrás del
+túnel, las reporta como advertencia esperada, no como fallo.
+
 ## Verificación
 
+0. `scripts/doctor.sh https://<subdominio>/` desde la máquina de la demo, en
+   la red del lugar: todo ✅ (o solo ⚠️ esperadas) antes de abrir el navegador.
 1. `rathole client` en Bastion conecta; los logs del VPS muestran los 3
    servicios registrados.
 2. `curl -I https://<subdominio>/` desde una red externa (no LAN de
