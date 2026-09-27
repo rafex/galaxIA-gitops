@@ -67,7 +67,7 @@ bastion: "Bastion · .139\nx86_64 · 8 núcleos · 15 GB · podman rootless" {
   atlas: "fhs-atlas\nbootstrap · P2P :4001 · API :8081" {class: svc}
   navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090" {class: svc}
   star: "fhs-star\nLLM provider · P2P :4002" {class: svc}
-  llama: "llama-server (systemd --user)\nqwen2.5-3b q4_k_m · :43110" {class: llm}
+  llama: "llama-server (systemd --user)\nQwen3.5-0.8B · :43110" {class: llm}
   star -> llama: "HTTP /v1"
 }
 

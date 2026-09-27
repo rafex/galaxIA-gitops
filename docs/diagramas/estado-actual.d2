@@ -1,4 +1,4 @@
-# Estado observado de la PoC — snapshot 2026-09-26 20:20 (CST)
+# Estado observado de la PoC — snapshot 2026-09-26 22:13 (CST)
 # Se actualiza a mano junto con docs/estado-poc.md.
 # Regenerar: scripts/render-diagramas.sh
 
@@ -66,41 +66,36 @@ leyenda: "Leyenda" {
   c: "fuera de la red P2P" {class: caido}
 }
 
-thinkpad: "ThinkPad · .239 · arriba 1 d 6 h" {
+thinkpad: "ThinkPad · .239" {
   class: host
-  portal: "fhs-portal-chat\n77a0919 (último código del portal)\npanel de diagnóstico disponible" {class: ok}
+  portal: "fhs-portal-chat\n464a178 (E2E-026 corregido)" {class: ok}
 }
 
-bastion: "Bastion · .139 · reinició hace 12 min → todo volvió solo" {
+bastion: "Bastion · .139 · mbpfan activo" {
   class: host
-  atlas: "fhs-atlas\nfcdd532 (falta 47a1f65)\npeerCount 4 / 5" {class: viejo}
-  navigator: "fhs-navigator\nfcdd532 (falta 47a1f65)\nconoce star + kb + rag" {class: viejo}
-  star: "fhs-star\nbe0ac3c (falta ebf0299)" {class: viejo}
-  llama: "llama-server\nsystemd --user · active" {class: ok}
+  atlas: "fhs-atlas\nc1df4f5 · 6 peers\n(5 nodos + navegador)" {class: ok}
+  navigator: "fhs-navigator\nc1df4f5\nconoce star + ocr + kb + rag" {class: ok}
+  star: "fhs-star\n7d7c0bf · streaming real" {class: ok}
+  llama: "llama-server · Qwen3.5-0.8B\nAVX+F16C · --reasoning off\n62 / 27.6 tok/s" {class: ok}
   star -> llama
 }
 
-raspi3b: "Raspi3B · .181 · reinició hace 11 min → volvió sola" {
+raspi3b: "Raspi3B · .181" {
   class: host
-  kb: "fhs-kb-provider\nimagen 2026-08-30\n(sin diagnósticos ni reconexión)" {class: viejo}
-  rag: "fhs-rag-provider\nimagen 2026-08-30\n(sin diagnósticos ni reconexión)" {class: viejo}
+  kb: "fhs-kb-provider\n7d7c0bf · reconecta solo" {class: ok}
+  rag: "fhs-rag-provider\n7d7c0bf · reconecta solo" {class: ok}
 }
 
-raspi4b: "Raspi4B · .167 · NO reinició (arriba 7 h 55 min)" {
+raspi4b: "Raspi4B · .167" {
   class: host
-  ocr: "fhs-satellite-ocr\nimagen 2026-08-30 · perdió a Atlas al reiniciar Bastion\ny nunca reconectó (NoPeersSubscribedToTopic)" {class: caido}
-  nueva: "imagen ebf0299 ya construida,\nfalta recrear el contenedor" {
-    shape: page
-    style.fill: "#FFFFFF"
-    style.font-size: 12
-  }
+  ocr: "fhs-satellite-ocr\nebf0299 · reconecta solo" {class: ok}
 }
 
 bastion.navigator -> bastion.atlas {class: enlace}
 bastion.star -> bastion.atlas {class: enlace}
 raspi3b.kb -> bastion.atlas {class: enlace}
 raspi3b.rag -> bastion.atlas {class: enlace}
-raspi4b.ocr -> bastion.atlas: "sin conexión" {class: roto}
+raspi4b.ocr -> bastion.atlas {class: enlace}
 thinkpad.portal -> bastion.atlas: "p2p-config.json → bootstrap .139:4001" {
   style.stroke: "#5B6B7F"
   style.stroke-dash: 3
