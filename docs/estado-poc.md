@@ -1,17 +1,18 @@
 # Estado de la PoC
 
-> **Snapshot: 2026-09-26 23:47 (CST).** Se actualiza a mano. Cada dato sale
+> **Snapshot: 2026-09-27 14:55 (CST).** Se actualiza a mano. Cada dato sale
 > de un comando corrido en ese momento (`podman ps/inspect`, `/status`,
 > `/health`, `llama-bench`, `doctor.sh`); no se copia de la memoria.
 > Arquitectura y porqués: [`arquitectura-poc.md`](arquitectura-poc.md).
 
 ## En una línea
 
-Todo arriba y al día: Atlas ve los 5 nodos (más el navegador del Mac),
-Navigator conoce a los 4 providers y **ya alcanza el OCR de la Raspi4B**,
-`doctor.sh` sale sin problemas bloqueantes. El LLM es **qwen2.5-3b** (se
-descartó Qwen3.5-0.8B por inventar datos) y el texto llega al navegador
-mientras se genera. El portal muestra Markdown y tiene botón de copiar.
+**Todo el backend corre en Rust** desde el 2026-09-27 (Atlas, Navigator, Star,
+OCR, KB y RAG sobre `galaxia-fhs`), con los mismos DID y PeerId; el Portal
+sigue en TypeScript. Atlas ve los 5 nodos, Navigator conoce a los 4
+providers, `doctor.sh` sale sin problemas bloqueantes y la prueba
+`tests/e2e` del Portal pasa 5/5. Los contenedores TS quedaron detenidos
+como reversa (`*-ts-rollback`, `fhs-navigator-pre-6858de5`).
 
 ![Estado actual](diagramas/estado-actual.svg)
 
@@ -19,13 +20,13 @@ mientras se genera. El portal muestra Markdown y tiene botón de copiar.
 
 | Equipo | Contenedores | Código desplegado | Nota |
 |---|---|---|---|
-| Bastion `.139` | `fhs-atlas` | Core `c1df4f5` | Mismo PeerID (identidad en volumen) |
-| | `fhs-navigator` | Core `c74ef5d` | Marca a cada provider por todas sus multiaddrs (E2E-027) y recomienda KB por cobertura de la pregunta |
-| | `fhs-star` | satellite-star `7d7c0bf` | Streaming real hacia el navegador; `MODEL_ID=qwen2.5-3b-instruct-q4_k_m` |
+| Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo (descubrimiento del Navigator en ~1 s, E2E-035) |
+| | `fhs-navigator` | galaxIA-agent `6858de5` | Rust + Rig. Republica su beacon DHT al recuperar Atlas (E2E-034) |
+| | `fhs-star` | satellite-star `eeb295a` (`rust/star`) | 3.2 MB de memoria (TS: 57 MB); `MODEL_ID=qwen2.5-3b-instruct-q4_k_m` |
 | | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` compilado con PoC-Llama.cpp `8051c41` | **qwen2.5-3b-instruct** Q4_K_M, 4 hilos, 10.6 tok/s |
-| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `ebf0299` | Reconecta solo al bootstrap |
-| Raspi3B `.181` | `fhs-kb-provider`, `fhs-rag-provider` | satellite-star `7d7c0bf` (sin cambios de kb/rag desde `ebf0299`) | Reconectan solos. La KB se anuncia con `KB_DESCRIPTION` ampliada (temas y artículos del texto de ejemplo) |
-| ThinkPad `.239` | `fhs-portal-chat` | Core `c74ef5d` | Markdown en las respuestas, botón "Copiar", DIDs que se parten en el panel |
+| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `6fcf07e` (`rust/ocr`) | Tesseract 5.3 `spa`; imagen de 227 MB (TS: 1.29 GB). Sus contenedores tienen DNS viejo: compilar con `--network host` (E2E-033) |
+| Raspi3B `.181` | `fhs-kb-provider`, `fhs-rag-provider` | satellite-star `6fcf07e` (`rust/kb`, `rust/rag`) | 10.4 MB cada uno; la máquina pasó de 188 a 97 MiB usados. Imágenes construidas en la Raspi4B. `KB_DESCRIPTION` ampliada se conserva |
+| ThinkPad `.239` | `fhs-portal-chat` | Core `3cd80fa` | Lee el beacon del DHT (E2E-032) |
 
 `mbpfan` controla el ventilador de Bastion: bajo carga sube a 5,500 RPM y
 la CPU se mantiene en 90–93 °C sin perder velocidad (antes el ventilador se

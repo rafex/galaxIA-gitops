@@ -2,8 +2,9 @@
 
 Qué módulos existen, dónde está su código, qué hace cada uno, en qué
 lenguaje y versión están, qué tan acoplados están y en qué máquina corren
-hoy. Datos medidos el **2026-09-27** en las máquinas (versiones de Node,
-nginx, Tesseract y llama.cpp sacadas de los contenedores en ejecución).
+hoy. Datos medidos el **2026-09-27** en las máquinas. Ese mismo día el
+backend pasó de TypeScript a Rust (ver `galaxIA/docs/migracion-rust-rendimiento.md`);
+los contenedores TS quedaron detenidos como reversa (`*-ts-rollback`).
 
 Complementa a [`arquitectura-poc.md`](arquitectura-poc.md) (cómo fluye un
 mensaje) y [`estado-poc.md`](estado-poc.md) (qué versión está desplegada).
@@ -22,36 +23,39 @@ mensaje) y [`estado-poc.md`](estado-poc.md) (qué versión está desplegada).
 
 ## Módulos desplegados
 
-Todos los nodos FHS corren en **Node.js 24** (imágenes `node:24-alpine`,
-salvo OCR en `node:24-bookworm`) y **TypeScript 5.9** (galaxIA-Core) o
-**5.5+** (galaxIA-satellite-star), con **js-libp2p 3.3.8**.
+Todos los nodos FHS del backend corren en **Rust 1.97** (edición 2021) con
+**rust-libp2p 0.57** sobre el crate compartido `galaxia-fhs`, en imágenes
+`debian:bookworm-slim` (OCR suma Tesseract y poppler). El Portal sigue en
+TypeScript: el navegador es un nodo **js-libp2p 3.3.8**. Mismo wire, mismas
+variables de entorno y mismos volúmenes de identidad que los TS, así que cada
+nodo conservó su DID y PeerId.
 
 | Módulo | Repo · ruta | Lenguaje · versión | Responsabilidad | Máquina | Puertos |
 |---|---|---|---|---|---|
-| **Atlas** (`fhs-atlas`) | `galaxIA-Core` · `apps/atlas` | TS · `@rafex/galaxia-atlas` 0.1.12 · Node 24.21 | Bootstrap de la red libp2p: punto de entrada, DHT (servidor) y malla GossipSub. No enruta misiones. | Bastion `.139` | P2P `4001` · API `8081` |
-| **Navigator** (`fhs-navigator`) | `galaxIA-Core` · `apps/navigator` | TS · `@rafex/galaxia-navigator` 0.1.17 · Node 24.21 | Orquestador: sesión del Portal, elección de LLM, subasta de misiones (offer/bid/assign), OCR determinista, RAG por red, recomendación y consulta de KB, prompt, tool calling y procedencia. | Bastion `.139` | P2P `4010` · API `8090` |
+| **Atlas** (`fhs-atlas`) | `galaxIA-Core` · `rust/atlas` | Rust · `galaxia-atlas` 0.1.0 | Bootstrap de la red libp2p: punto de entrada, DHT (servidor), reenvío GossipSub de todos los temas y de los anuncios vigentes a cada suscriptor nuevo, mDNS. No enruta misiones. | Bastion `.139` | P2P `4001` · API `8081` |
+| **Navigator** (`fhs-navigator`) | `galaxIA-agent` (raíz) | Rust · `galaxia-agent` 0.1.0 · Rig 0.42 | Orquestador: sesión del Portal, elección de LLM, subasta de misiones (offer/bid/assign), OCR determinista, RAG por red, recomendación y consulta de KB, prompt, tool calling y procedencia. | Bastion `.139` | P2P `4010` · API `8090` |
 | **Portal Chat** (`fhs-portal-chat`) | `galaxIA-Core` · `apps/portal-chat` | TS (Vite) servido por nginx 1.31 · `@rafex/galaxia-portal-chat` 0.1.21 | Interfaz web. El navegador es un nodo js-libp2p: se conecta a Atlas y a Navigator. RAG local en el navegador (MiniLM + sqlite-wasm), panel de diagnóstico, Markdown. | ThinkPad `.239` | HTTPS `8443` |
-| **Star** (`fhs-star`) | `galaxIA-satellite-star` · `examples/star-example` | TS · `@galaxia/star-example` 0.2.0 · Node 24.21 | Provider LLM: puja por misiones `chat`, recibe el stream directo y reenvía la respuesta de llama-server en vivo. | Bastion `.139` | P2P `4002` |
+| **Star** (`fhs-star`) | `galaxIA-satellite-star` · `rust/star` | Rust · `galaxia-star` 0.1.0 | Provider LLM: puja por misiones `chat`, recibe el stream directo y reenvía la respuesta de llama-server en vivo. | Bastion `.139` | P2P `4002` |
 | **llama-server** | `PoC-Llama.cpp` (compila `ggml-org/llama.cpp` `7fe450e`) | C++ · binario en `/opt/llama.cpp` · perfil `apple/macmini6.2` (AVX+F16C) | Inferencia local del modelo (qwen2.5-3b-instruct Q4_K_M) con API OpenAI-compatible. | Bastion `.139` (`systemd --user`) | HTTP `43110` (solo local) |
-| **Satellite OCR** (`fhs-satellite-ocr`) | `galaxIA-satellite-star` · `examples/satellite-ocr-example` | TS · `@galaxia/satellite-ocr-example` 0.2.0 · Node 24.20 · Tesseract 5.3 | Extrae texto de PDF/imagen (`document.ocr`). | Raspi4B `.167` | P2P `4003` |
-| **KB provider** (`fhs-kb-provider`) | `galaxIA-satellite-star` · `examples/kb-provider` | TS · `@galaxia/kb-provider-example` 0.2.0 · Node 24.20 | Base de conocimiento estática (`knowledge.query`; hoy, texto de ejemplo de la Constitución). | Raspi3B `.181` | P2P `4006` |
-| **RAG provider** (`fhs-rag-provider`) | `galaxIA-satellite-star` · `examples/rag-provider` | TS · `@galaxia/rag-provider-example` 0.2.0 · Node 24.20 | Indexa y recupera fragmentos por conversación (`document.index`, `document.query`); también fusiona resultados de KB. | Raspi3B `.181` | P2P `4005` |
+| **Satellite OCR** (`fhs-satellite-ocr`) | `galaxIA-satellite-star` · `rust/ocr` | Rust · `galaxia-ocr` 0.1.0 · Tesseract 5.3 (`spa`) · poppler | Extrae texto de PDF/imagen (`document.ocr`). | Raspi4B `.167` | P2P `4003` |
+| **KB provider** (`fhs-kb-provider`) | `galaxIA-satellite-star` · `rust/kb` | Rust · `galaxia-kb` 0.1.0 | Base de conocimiento estática (`knowledge.query`; hoy, texto de ejemplo de la Constitución). | Raspi3B `.181` | P2P `4006` |
+| **RAG provider** (`fhs-rag-provider`) | `galaxIA-satellite-star` · `rust/rag` | Rust · `galaxia-rag` 0.1.0 | Indexa y recupera fragmentos por conversación (`document.index`, `document.query`); también fusiona resultados de KB. | Raspi3B `.181` | P2P `4005` |
 
 ## Librerías compartidas (acoplamiento en compilación, no en ejecución)
 
 | Librería | Repo · ruta | Lenguaje · versión | La usan | Qué aporta |
 |---|---|---|---|---|
-| IDL FHS | `galaxIA` · `idl/fhs-protocol.proto` | Protobuf 3 | todos (vía SDK) y `galaxIA-agent` (copia verificada por sha256) | Contrato del wire: Envelope, mensajes GossipSub, misiones |
-| `@rafex/galaxia-fhs-protocol` | `galaxIA-SDK` · `packages/fhs-protocol` | TS 5.9 · 0.1.36 en npmjs (`@rafex_labs/…`) | Atlas, Navigator, Portal, todos los providers | Tipos generados, codificación Protobuf, cadenas de firma |
-| `@rafex/galaxia-fhs-node` | `galaxIA-Core` · `packages/fhs-node` | TS 5.9 · 0.1.0 (workspace) | Atlas, Navigator | Nodo libp2p, reconexión al bootstrap, diagnóstico, `/status` |
-| `@galaxia/fhs-wire` | `galaxIA-satellite-star` · `examples/fhs-wire` | TS · 0.1.0 (workspace) | Star, OCR, KB, RAG, Nova | Firmas, beacon, `DynamicValue`, streams; copia deliberada del diagnóstico de `fhs-node` |
-| Perfiles de parseo | `galaxia-parser-catalog` | TS + JSON + SQLite · 0.1.0 | Star (copia local en `parser-profiles.ts`) | Parseo tolerante de tool calls escritas como texto |
+| IDL FHS | `galaxIA` · `idl/fhs-protocol.proto` | Protobuf 3 | todos (vía SDK) | Contrato del wire: Envelope, mensajes GossipSub, misiones |
+| `@rafex/galaxia-fhs-protocol` | `galaxIA-SDK` · `packages/fhs-protocol` | TS 5.9 · 0.1.36 en npmjs (`@rafex_labs/…`) | Portal (y los nodos TS de reversa) | Tipos generados, codificación Protobuf, cadenas de firma |
+| `galaxia-fhs` | `galaxIA-SDK` · `rust/fhs` | Rust 1.97 · 0.1.0 (git) | Navigator, Star, OCR, KB, RAG, Atlas | IDL generado (copia verificada por sha256), firmas, identidad, TLS con pin, nodo libp2p por papel, misiones del lado Navigator y del lado provider |
+| `galaxia-provider-kit` | `galaxIA-satellite-star` · `rust/kit` | Rust 1.97 · 0.1.0 | Star, OCR, KB, RAG | Configuración por env, arranque y apagado, motor de solapamiento de KB/RAG, ciclo común de tools |
+| Perfiles de parseo | `galaxia-parser-catalog` | TS + JSON + SQLite · 0.1.0 | Star TS (copia local en `parser-profiles.ts`); el Star Rust no lo usa: solo aplicaba a respuestas sin streaming | Parseo tolerante de tool calls escritas como texto |
 
 ## No desplegados
 
 | Módulo | Repo · ruta | Lenguaje · versión | Estado |
 |---|---|---|---|
-| **galaxIA-agent** | `galaxIA-agent` (raíz) | Rust 1.97 (edición 2021) · Rig 0.42 · rust-libp2p 0.57 | En desarrollo para reemplazar a Navigator. Hoy: política, firmas compatibles con el TS (fixtures dorados) y la capa P2P en construcción. Plan en `galaxIA-agent/docs/migracion-desde-ts.md`. |
+| **Nodos TS anteriores** | `galaxIA-Core/apps/{atlas,navigator}`, `galaxIA-satellite-star/examples/*` | TS · Node 24 | Reemplazados por Rust el 2026-09-27; contenedores detenidos como reversa. `@rafex/galaxia-fhs-protocol` sigue en uso por el Portal. |
 | **Nova** | `galaxIA-satellite-star` · `examples/nova-example` | TS · 0.2.0 | Nodo de razonamiento con loop propio (SPEC-NOVA-0001). Sin contenedor en la PoC. |
 | **Portal TUI** | `galaxIA-Core` · `apps/portal-tui` | TS · 0.1.0 | Esqueleto de cliente de terminal; sin implementar. |
 | **log-agent** | `galaxIA-Core` · `apps/log-agent` | TS · 0.1.0 | Colector central de logs vía NATS (DEC-0083). Fuera del protocolo; no hay NATS en la PoC. |

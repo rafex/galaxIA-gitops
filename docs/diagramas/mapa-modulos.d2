@@ -21,6 +21,14 @@ classes: {
       font-size: 12
     }
   }
+  rust: {
+    style: {
+      fill: "#FBEDE6"
+      stroke: "#B7472A"
+      border-radius: 4
+      font-size: 12
+    }
+  }
   native: {
     style: {
       fill: "#FFF8E6"
@@ -65,9 +73,9 @@ leyenda: "Leyenda" {
   grid-gap: 6
   style.fill: "#FFFFFF"
   style.stroke: "#CBD5E0"
-  a: "TypeScript · Node 24" {class: ts}
+  r: "Rust 1.97 · galaxia-fhs" {class: rust}
+  a: "TypeScript (navegador)" {class: ts}
   b: "nativo (C++ / nginx)" {class: native}
-  c: "planeado / no desplegado" {class: planned}
 }
 
 mac: "Mac · 192.168.1.102\narm64 · macOS 27" {
@@ -82,24 +90,22 @@ thinkpad: "ThinkPad · 192.168.1.239\nx86_64 · Debian forky" {
 
 bastion: "Bastion · 192.168.1.139\nx86_64 · Debian 13" {
   class: host
-  atlas: "fhs-atlas\nbootstrap libp2p\ngalaxIA-Core" {class: ts}
-  navigator: "fhs-navigator\norquestador\ngalaxIA-Core" {class: ts}
-  star: "fhs-star\nprovider LLM\ngalaxIA-satellite-star" {class: ts}
+  atlas: "fhs-atlas\nbootstrap libp2p\ngalaxIA-Core/rust" {class: rust}
+  navigator: "fhs-navigator\norquestador (Rig)\ngalaxIA-agent" {class: rust}
+  star: "fhs-star\nprovider LLM\ngalaxIA-satellite-star/rust" {class: rust}
   llama: "llama-server\nqwen2.5-3b\nPoC-Llama.cpp" {class: native}
-  agent: "galaxIA-agent\nNavigator en Rust + Rig\n(en desarrollo)" {class: planned}
   star -> llama: "HTTP /v1\n127.0.0.1:43110" {class: local}
-  agent -> navigator: "lo reemplazará" {style.stroke-dash: 4}
 }
 
 raspi4b: "Raspi4B · 192.168.1.167\naarch64 · Debian 13" {
   class: host
-  ocr: "fhs-satellite-ocr\nTesseract 5.3\ngalaxIA-satellite-star" {class: ts}
+  ocr: "fhs-satellite-ocr\nTesseract 5.3\ngalaxIA-satellite-star/rust" {class: rust}
 }
 
 raspi3b: "Raspi3B · 192.168.1.181\naarch64 · Debian 13" {
   class: host
-  kb: "fhs-kb-provider\ngalaxIA-satellite-star" {class: ts}
-  rag: "fhs-rag-provider\ngalaxIA-satellite-star" {class: ts}
+  kb: "fhs-kb-provider\ngalaxIA-satellite-star/rust" {class: rust}
+  rag: "fhs-rag-provider\ngalaxIA-satellite-star/rust" {class: rust}
 }
 
 mac.browser -> thinkpad.portal: "HTTPS :8443\nHTML + p2p-config.json" {class: web}
