@@ -21,6 +21,11 @@ laboratorio — se necesita:
 
 ## Arquitectura
 
+Laboratorio completo (5 equipos, qué corre dónde, flujo P2P):
+[`docs/arquitectura-poc.md`](docs/arquitectura-poc.md). Estado del día:
+[`docs/estado-poc.md`](docs/estado-poc.md). Abajo, solo la parte de acceso
+remoto:
+
 ```
 Asistente a la demo (cualquier red)
         │  https://<subdominio>/
@@ -67,6 +72,10 @@ advertencia.
 | `certbot/issue-cert.sh` | Emisión inicial del certificado (HTTP-01, standalone) |
 | `certbot/renewal-hooks/deploy/sync-to-bastion.sh` | Hook que corre en cada renovación: copia el cert nuevo a Bastion y reinicia los contenedores |
 | `scripts/doctor.sh` | Diagnóstico de red desde la máquina de la demo: portal, bootstrap y Navigator (TCP, TLS, SAN, vencimiento), reloj y malla P2P — ✅/⚠️/❌ con pista por fila |
+| `docs/arquitectura-poc.md` | Arquitectura del laboratorio: hardware, qué corre dónde, flujo de un mensaje, decisiones operativas y demo remota esperada |
+| `docs/estado-poc.md` | Estado del laboratorio (snapshot fechado): versión desplegada por host, red P2P, pendientes y problemas conocidos |
+| `docs/diagramas/*.d2` | Diagramas en [D2](https://d2lang.com/) (fuente + `.svg` generado) |
+| `scripts/render-diagramas.sh` | Regenera los `.svg` a partir de los `.d2` (`brew install d2`) |
 | `docs/acceso-remoto-demo.md` | Diseño completo, decisiones y guía paso a paso |
 | `.env.example` | Variables a completar (dominio, IP del VPS, token) — **nunca commitear `.env`** |
 

@@ -1,0 +1,107 @@
+# Estado observado de la PoC — snapshot 2026-09-26 20:20 (CST)
+# Se actualiza a mano junto con docs/estado-poc.md.
+# Regenerar: scripts/render-diagramas.sh
+
+direction: down
+
+classes: {
+  host: {
+    style: {
+      fill: "#F5F7FA"
+      stroke: "#5B6B7F"
+      border-radius: 6
+      font-size: 15
+      bold: true
+    }
+  }
+  ok: {
+    style: {
+      fill: "#E6F4EA"
+      stroke: "#2E7D32"
+      border-radius: 4
+      font-size: 12
+    }
+  }
+  viejo: {
+    style: {
+      fill: "#FFF6DB"
+      stroke: "#B7791F"
+      border-radius: 4
+      font-size: 12
+    }
+  }
+  caido: {
+    style: {
+      fill: "#FDECEA"
+      stroke: "#C62828"
+      stroke-width: 2
+      border-radius: 4
+      font-size: 12
+    }
+  }
+  enlace: {
+    style: {
+      stroke: "#2E7D32"
+      stroke-width: 2
+    }
+  }
+  roto: {
+    style: {
+      stroke: "#C62828"
+      stroke-width: 2
+      stroke-dash: 5
+      font-color: "#C62828"
+    }
+  }
+}
+
+leyenda: "Leyenda" {
+  near: top-right
+  style.fill: "#FFFFFF"
+  style.stroke: "#CBD5E0"
+  grid-columns: 1
+  grid-gap: 8
+  a: "al día con main" {class: ok}
+  b: "arriba, imagen atrasada" {class: viejo}
+  c: "fuera de la red P2P" {class: caido}
+}
+
+thinkpad: "ThinkPad · .239 · arriba 1 d 6 h" {
+  class: host
+  portal: "fhs-portal-chat\n77a0919 (último código del portal)\npanel de diagnóstico disponible" {class: ok}
+}
+
+bastion: "Bastion · .139 · reinició hace 12 min → todo volvió solo" {
+  class: host
+  atlas: "fhs-atlas\nfcdd532 (falta 47a1f65)\npeerCount 4 / 5" {class: viejo}
+  navigator: "fhs-navigator\nfcdd532 (falta 47a1f65)\nconoce star + kb + rag" {class: viejo}
+  star: "fhs-star\nbe0ac3c (falta ebf0299)" {class: viejo}
+  llama: "llama-server\nsystemd --user · active" {class: ok}
+  star -> llama
+}
+
+raspi3b: "Raspi3B · .181 · reinició hace 11 min → volvió sola" {
+  class: host
+  kb: "fhs-kb-provider\nimagen 2026-08-30\n(sin diagnósticos ni reconexión)" {class: viejo}
+  rag: "fhs-rag-provider\nimagen 2026-08-30\n(sin diagnósticos ni reconexión)" {class: viejo}
+}
+
+raspi4b: "Raspi4B · .167 · NO reinició (arriba 7 h 55 min)" {
+  class: host
+  ocr: "fhs-satellite-ocr\nimagen 2026-08-30 · perdió a Atlas al reiniciar Bastion\ny nunca reconectó (NoPeersSubscribedToTopic)" {class: caido}
+  nueva: "imagen ebf0299 ya construida,\nfalta recrear el contenedor" {
+    shape: page
+    style.fill: "#FFFFFF"
+    style.font-size: 12
+  }
+}
+
+bastion.navigator -> bastion.atlas {class: enlace}
+bastion.star -> bastion.atlas {class: enlace}
+raspi3b.kb -> bastion.atlas {class: enlace}
+raspi3b.rag -> bastion.atlas {class: enlace}
+raspi4b.ocr -> bastion.atlas: "sin conexión" {class: roto}
+thinkpad.portal -> bastion.atlas: "p2p-config.json → bootstrap .139:4001" {
+  style.stroke: "#5B6B7F"
+  style.stroke-dash: 3
+}

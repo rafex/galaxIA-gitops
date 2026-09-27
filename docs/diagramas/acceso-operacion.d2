@@ -1,0 +1,37 @@
+# Acceso de operación (SSH) — Bastion es el puente
+# Regenerar: scripts/render-diagramas.sh
+
+direction: right
+
+classes: {
+  host: {
+    style: {
+      fill: "#F5F7FA"
+      stroke: "#5B6B7F"
+      border-radius: 6
+      font-size: 14
+    }
+  }
+  ssh: {
+    style: {
+      stroke: "#5B6B7F"
+      stroke-dash: 4
+    }
+  }
+}
+
+mac: "Mac · .102\n(operador)" {class: host}
+bastion: "Bastion · .139\nrafex, podman rootless" {class: host}
+thinkpad: "ThinkPad · .239\nrafex, podman rootless" {class: host}
+raspi4b: "Raspi4B · .167\nroot" {class: host}
+raspi3b: "Raspi3B · .181\nroot" {class: host}
+router: "Router OpenWrt · .1\nroot · uci / dnsmasq" {
+  shape: hexagon
+  style.fill: "#EDF2F7"
+}
+
+mac -> bastion: "ssh bastion-usb-wifi" {class: ssh}
+mac -> thinkpad: "ssh rafex@192.168.1.239" {class: ssh}
+mac -> raspi4b: "ssh root@192.168.1.167" {class: ssh}
+bastion -> raspi3b: "ssh root@192.168.1.181\n(solo la llave de Bastion)" {class: ssh}
+bastion -> router: "ssh root@192.168.1.1\n(solo la llave de Bastion)" {class: ssh}

@@ -1,0 +1,50 @@
+# Flujo de un mensaje de chat en la PoC (P2P FHS)
+# Regenerar: scripts/render-diagramas.sh
+
+shape: sequence_diagram
+
+nav: "Navegador\n(Mac)"
+portal: "portal-chat\n(ThinkPad :8443)"
+atlas: "Atlas\n(Bastion :4001)"
+navigator: "Navigator\n(Bastion :4010)"
+star: "Star\n(Bastion :4002)"
+llama: "llama-server\n(:43110)"
+
+arranque: "Arranque de cada nodo (antes de que llegue el usuario)" {
+  navigator -> atlas: "dial bootstrap (reintento con backoff)"
+  star -> atlas: "dial bootstrap"
+  star -> navigator: "NodeAdvertise firmado cada 30 s (vía malla GossipSub de Atlas)"
+}
+
+carga: "1. Cargar el portal" {
+  nav -> portal: "GET / (HTTPS)"
+  nav -> portal: "GET /p2p-config.json"
+  portal -> nav: "bootstrapAddrs = /ip4/192.168.1.139/tcp/4001/tls/ws/p2p/12D3KooWL2kv…"
+}
+
+descubrir: "2. Entrar al swarm y descubrir a Navigator" {
+  nav -> atlas: "wss + Noise + yamux (dial bootstrap)"
+  atlas -> nav: "NodeAdvertise de Navigator, reenviado por la malla GossipSub\n(se valida firma, TTL y reloj ±5 s)"
+  nav -> navigator: "wss directo a la multiaddr anunciada (:4010)"
+}
+
+sesion: "3. Sesión del portal" {
+  nav -> navigator: "stream /fhs/v1/0.1.0 · handshake (timeout 10 s)"
+  navigator -> nav: "handshake ack"
+  nav -> navigator: "chat.request «hola»"
+}
+
+mision: "4. Misión: subasta y asignación" {
+  navigator -> star: "missions/offer (GossipSub)"
+  star -> navigator: "missions/bid"
+  navigator -> star: "missions/assign"
+  navigator -> star: "stream directo /fhs/v1/0.1.0 · handshake"
+  navigator -> star: "chat.request"
+  star -> llama: "POST /v1/chat/completions (stream)"
+  llama -> star: "tokens"
+  star -> navigator: "chat.delta … chat.completed"
+}
+
+respuesta: "5. Respuesta al usuario" {
+  navigator -> nav: "assistant.delta … assistant.completed + provenance (DIDs reales)"
+}

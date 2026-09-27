@@ -1,0 +1,97 @@
+# Topología de la PoC — qué corre dónde y quién habla con quién
+# Red soberana 192.168.1.0/24 (router OpenWrt 192.168.1.1). El acceso SSH
+# de operación está aparte: acceso-operacion.d2
+# Regenerar: scripts/render-diagramas.sh
+
+direction: down
+
+classes: {
+  host: {
+    style: {
+      fill: "#F5F7FA"
+      stroke: "#5B6B7F"
+      border-radius: 6
+      font-size: 16
+      bold: true
+    }
+  }
+  svc: {
+    style: {
+      fill: "#FFFFFF"
+      stroke: "#2F6F9F"
+      border-radius: 4
+      font-size: 13
+    }
+  }
+  llm: {
+    style: {
+      fill: "#FFF8E6"
+      stroke: "#B7791F"
+      border-radius: 4
+      font-size: 13
+    }
+  }
+  p2p: {
+    style: {
+      stroke: "#2F6F9F"
+      stroke-width: 2
+    }
+  }
+  browser: {
+    style: {
+      stroke: "#0F766E"
+      stroke-width: 3
+      font-color: "#0F766E"
+    }
+  }
+  web: {
+    style: {
+      stroke: "#6B46C1"
+      stroke-width: 2
+    }
+  }
+}
+
+mac: "Mac · .102\narm64" {
+  class: host
+  navegador: "Navegador\n(nodo libp2p en JS)" {class: svc}
+}
+
+thinkpad: "ThinkPad · .239\nx86_64 · 15 GB · podman rootless" {
+  class: host
+  portal: "fhs-portal-chat\nnginx · :8443" {class: svc}
+}
+
+bastion: "Bastion · .139\nx86_64 · 8 núcleos · 15 GB · podman rootless" {
+  class: host
+  atlas: "fhs-atlas\nbootstrap · P2P :4001 · API :8081" {class: svc}
+  navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090" {class: svc}
+  star: "fhs-star\nLLM provider · P2P :4002" {class: svc}
+  llama: "llama-server (systemd --user)\nqwen2.5-3b q4_k_m · :43110" {class: llm}
+  star -> llama: "HTTP /v1"
+}
+
+raspi4b: "Raspi4B · .167\naarch64 · 7.7 GB · podman root" {
+  class: host
+  ocr: "fhs-satellite-ocr\nTesseract · P2P :4003" {class: svc}
+}
+
+raspi3b: "Raspi3B «portal-pi» · .181\naarch64 · ~1 GB · podman root" {
+  class: host
+  kb: "fhs-kb-provider\nP2P :4006" {class: svc}
+  rag: "fhs-rag-provider\nP2P :4005" {class: svc}
+}
+
+# Web: el navegador baja el portal y su p2p-config.json
+mac.navegador -> thinkpad.portal: "HTTPS :8443\nHTML + p2p-config.json" {class: web}
+
+# P2P: el navegador entra al swarm por Atlas y dialea directo a Navigator
+mac.navegador -> bastion.atlas: "wss :4001\n1) bootstrap" {class: browser}
+mac.navegador -> bastion.navigator: "wss :4010\n2) sesión de chat" {class: browser}
+
+# Cada provider y Navigator se enganchan a Atlas (dialBootstraps con reintento)
+bastion.navigator -> bastion.atlas: "bootstrap" {class: p2p}
+bastion.star -> bastion.atlas: "bootstrap" {class: p2p}
+raspi4b.ocr -> bastion.atlas: "bootstrap" {class: p2p}
+raspi3b.kb -> bastion.atlas: "bootstrap" {class: p2p}
+raspi3b.rag -> bastion.atlas: "bootstrap" {class: p2p}

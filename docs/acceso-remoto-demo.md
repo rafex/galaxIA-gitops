@@ -56,6 +56,16 @@ de entrada) — el puerto 80 del VPS queda reservado exclusivamente para
 
 ## Diseño completo
 
+![Demo remota](diagramas/demo-remota.svg)
+
+Fuente: [`diagramas/demo-remota.d2`](diagramas/demo-remota.d2). Contexto del
+laboratorio completo: [`arquitectura-poc.md`](arquitectura-poc.md).
+
+> **Nota (2026-09-26):** el portal de la LAN se mudó a la ThinkPad (`.239`).
+> El túnel sigue apuntando a `127.0.0.1:8443` de Bastion, así que la demo
+> necesita **una segunda instancia de `fhs-portal-chat` en Bastion** con el
+> bootstrap público (paso 5). El portal de la ThinkPad no cambia.
+
 ### 1. VPS: rathole server + certbot
 
 - Instalar el binario de `rathole` ([releases](https://github.com/rapiz1/rathole/releases))

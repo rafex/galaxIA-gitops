@@ -1,0 +1,78 @@
+# Demo remota — cómo se espera que funcione (aún no desplegado)
+# Diseño completo: docs/acceso-remoto-demo.md
+# Regenerar: scripts/render-diagramas.sh
+
+direction: right
+
+classes: {
+  box: {
+    style: {
+      fill: "#F5F7FA"
+      stroke: "#5B6B7F"
+      border-radius: 6
+      font-size: 15
+      bold: true
+    }
+  }
+  svc: {
+    style: {
+      fill: "#FFFFFF"
+      stroke: "#2F6F9F"
+      border-radius: 4
+      font-size: 13
+    }
+  }
+  lan: {
+    style: {
+      fill: "#F2F2F2"
+      stroke: "#A0AEC0"
+      stroke-dash: 3
+      font-color: "#718096"
+      font-size: 13
+    }
+  }
+}
+
+asistente: "Asistente a la demo\n(cualquier red, sin excepciones de certificado)" {
+  shape: person
+}
+
+vps: "VPS propio (IP pública)" {
+  class: box
+  certbot: "certbot HTTP-01\n:80 (nunca tunelado)" {class: svc}
+  server: "rathole server\ncontrol :2333 (Noise)\npúblicos :443 · :4001 · :4010" {class: svc}
+}
+
+dns: "DNS <subdominio>.rafex.io\n(clúster propio del usuario)" {
+  shape: cylinder
+}
+
+bastion: "Bastion (detrás del NAT de casa)" {
+  class: box
+  client: "rathole client\n(systemd)" {class: svc}
+  atlas: "fhs-atlas :4001\nFHS_ANNOUNCE_ADDRS += /dns4/<subdominio>/…" {class: svc}
+  navigator: "fhs-navigator :4010\nFHS_ANNOUNCE_ADDRS += /dns4/<subdominio>/…" {class: svc}
+  portal: "fhs-portal-chat (instancia demo) :8443\nbootstrap = /dns4/<subdominio>/tcp/4001/…" {class: svc}
+  apis: "APIs 8081 / 8090\nsolo LAN (exponen topología)" {class: lan}
+  certs: "~/certs ← Let's Encrypt real" {
+    shape: page
+  }
+  client -> atlas
+  client -> navigator
+  client -> portal
+}
+
+lab: "Raspi4B · Raspi3B · ThinkPad\n(sin cambios: providers y portal LAN\nsiguen igual)" {class: box}
+
+asistente -> dns: "resuelve <subdominio>"
+asistente -> vps.server: "https :443 · wss :4001 · wss :4010"
+vps.server <-> bastion.client: "túnel inverso (sale desde Bastion,\nsin abrir puertos en el router)" {
+  style.stroke-width: 3
+  style.stroke: "#2F6F9F"
+}
+vps.certbot -> bastion.certs: "hook de renovación\nsync-to-bastion.sh (scp + podman restart)" {
+  style.stroke-dash: 4
+}
+lab -> bastion.atlas: "bootstrap LAN" {
+  style.stroke-dash: 4
+}

@@ -34,6 +34,14 @@ avisa al usuario en vez de commitearlo.
 
 ## Fuente de verdad
 
+Antes de tocar hardware, lee [`docs/estado-poc.md`](docs/estado-poc.md) (qué
+está desplegado y qué falla) y [`docs/arquitectura-poc.md`](docs/arquitectura-poc.md)
+(qué corre dónde y por qué). Si cambias el despliegue, actualiza el snapshot
+de `estado-poc.md` **con datos recién medidos** y su diagrama
+`docs/diagramas/estado-actual.d2`; después corre `scripts/render-diagramas.sh`.
+Los diagramas son [D2](https://d2lang.com/): se versionan el `.d2` y el `.svg`,
+porque GitHub no renderiza D2 dentro de Markdown.
+
 [`docs/acceso-remoto-demo.md`](docs/acceso-remoto-demo.md) tiene el diseño
 completo: por qué rathole (vs. las otras 2 alternativas Rust evaluadas, vs.
 ngrok, vs. WireGuard), por qué Atlas *y* Navigator necesitan ser alcanzables
