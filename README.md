@@ -73,6 +73,7 @@ advertencia.
 | `certbot/renewal-hooks/deploy/sync-to-bastion.sh` | Hook que corre en cada renovación: copia el cert nuevo a Bastion y reinicia los contenedores |
 | `scripts/doctor.sh` | Diagnóstico de red desde la máquina de la demo: portal, bootstrap y Navigator (TCP, TLS, SAN, vencimiento), reloj y malla P2P — ✅/⚠️/❌ con pista por fila |
 | `docs/arquitectura-poc.md` | Arquitectura del laboratorio: hardware, qué corre dónde, flujo de un mensaje, decisiones operativas y demo remota esperada |
+| `docs/mapa-modulos.md` | Mapa de módulos: repo y ruta, lenguaje y versión, responsabilidad, acoplamiento y máquina/IP donde corre cada uno |
 | `docs/estado-poc.md` | Estado del laboratorio (snapshot fechado): versión desplegada por host, red P2P, pendientes y problemas conocidos |
 | `docs/diagramas/*.d2` | Diagramas en [D2](https://d2lang.com/) (fuente + `.svg` generado) |
 | `scripts/render-diagramas.sh` | Regenera los `.svg` a partir de los `.d2` (`brew install d2`) |

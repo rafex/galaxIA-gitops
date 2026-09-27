@@ -1,0 +1,116 @@
+# Mapa de módulos de la PoC: qué corre en cada máquina y cómo se acoplan
+# Regenerar: scripts/render-diagramas.sh
+
+direction: down
+
+classes: {
+  host: {
+    style: {
+      fill: "#F5F7FA"
+      stroke: "#5B6B7F"
+      border-radius: 6
+      font-size: 14
+      bold: true
+    }
+  }
+  ts: {
+    style: {
+      fill: "#EAF2FB"
+      stroke: "#2F6F9F"
+      border-radius: 4
+      font-size: 12
+    }
+  }
+  native: {
+    style: {
+      fill: "#FFF8E6"
+      stroke: "#B7791F"
+      border-radius: 4
+      font-size: 12
+    }
+  }
+  planned: {
+    style: {
+      fill: "#FFFFFF"
+      stroke: "#8A94A3"
+      stroke-dash: 4
+      border-radius: 4
+      font-size: 12
+      font-color: "#5B6B7F"
+    }
+  }
+  p2p: {
+    style: {
+      stroke: "#2F6F9F"
+      stroke-width: 2
+    }
+  }
+  local: {
+    style: {
+      stroke: "#B7791F"
+      stroke-width: 2
+    }
+  }
+  web: {
+    style: {
+      stroke: "#6B46C1"
+      stroke-width: 2
+    }
+  }
+}
+
+leyenda: "Leyenda" {
+  near: bottom-right
+  grid-columns: 1
+  grid-gap: 6
+  style.fill: "#FFFFFF"
+  style.stroke: "#CBD5E0"
+  a: "TypeScript · Node 24" {class: ts}
+  b: "nativo (C++ / nginx)" {class: native}
+  c: "planeado / no desplegado" {class: planned}
+}
+
+mac: "Mac · 192.168.1.102\narm64 · macOS 27" {
+  class: host
+  browser: "Navegador\n(js-libp2p del portal)" {class: ts}
+}
+
+thinkpad: "ThinkPad · 192.168.1.239\nx86_64 · Debian forky" {
+  class: host
+  portal: "fhs-portal-chat\nnginx 1.31 + Vite/TS\ngalaxIA-Core" {class: native}
+}
+
+bastion: "Bastion · 192.168.1.139\nx86_64 · Debian 13" {
+  class: host
+  atlas: "fhs-atlas\nbootstrap libp2p\ngalaxIA-Core" {class: ts}
+  navigator: "fhs-navigator\norquestador\ngalaxIA-Core" {class: ts}
+  star: "fhs-star\nprovider LLM\ngalaxIA-satellite-star" {class: ts}
+  llama: "llama-server\nqwen2.5-3b\nPoC-Llama.cpp" {class: native}
+  agent: "galaxIA-agent\nNavigator en Rust + Rig\n(en desarrollo)" {class: planned}
+  star -> llama: "HTTP /v1\n127.0.0.1:43110" {class: local}
+  agent -> navigator: "lo reemplazará" {style.stroke-dash: 4}
+}
+
+raspi4b: "Raspi4B · 192.168.1.167\naarch64 · Debian 13" {
+  class: host
+  ocr: "fhs-satellite-ocr\nTesseract 5.3\ngalaxIA-satellite-star" {class: ts}
+}
+
+raspi3b: "Raspi3B · 192.168.1.181\naarch64 · Debian 13" {
+  class: host
+  kb: "fhs-kb-provider\ngalaxIA-satellite-star" {class: ts}
+  rag: "fhs-rag-provider\ngalaxIA-satellite-star" {class: ts}
+}
+
+mac.browser -> thinkpad.portal: "HTTPS :8443\nHTML + p2p-config.json" {class: web}
+mac.browser -> bastion.atlas: "wss :4001" {class: p2p}
+mac.browser -> bastion.navigator: "wss :4010" {class: p2p}
+bastion.navigator -> bastion.atlas: "bootstrap" {class: p2p}
+bastion.star -> bastion.atlas: "bootstrap" {class: p2p}
+raspi4b.ocr -> bastion.atlas: "bootstrap" {class: p2p}
+raspi3b.kb -> bastion.atlas: "bootstrap" {class: p2p}
+raspi3b.rag -> bastion.atlas: "bootstrap" {class: p2p}
+bastion.navigator -> bastion.star: "missions" {class: p2p}
+bastion.navigator -> raspi4b.ocr: "missions" {class: p2p}
+bastion.navigator -> raspi3b.kb: "missions" {class: p2p}
+bastion.navigator -> raspi3b.rag: "missions" {class: p2p}

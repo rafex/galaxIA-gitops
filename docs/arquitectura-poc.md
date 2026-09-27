@@ -9,6 +9,9 @@ Este documento describe **cómo está armado y por qué**. El estado del día
 (qué está arriba, qué versión corre, qué falla) vive aparte en
 [`estado-poc.md`](estado-poc.md).
 
+Mapa de módulos (repo, lenguaje y versión, acoplamiento, máquina e IP):
+[`mapa-modulos.md`](mapa-modulos.md).
+
 Los diagramas están escritos en [D2](https://d2lang.com/). Las fuentes están
 en [`diagramas/`](diagramas/) y los SVG se regeneran con
 `scripts/render-diagramas.sh`.
