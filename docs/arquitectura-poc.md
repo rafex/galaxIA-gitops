@@ -37,7 +37,7 @@ anunciadas: si una IP cambia, se rompe TLS.
 | `fhs-atlas` | Bastion | `node:24-alpine` | `:4001` | `:8081` `/health`, `/status` | volumen `atlas-data` (identidad; PeerID fijo `12D3KooWL2kv…`) |
 | `fhs-navigator` | Bastion | `node:24-alpine` | `:4010` | `:8090` `/health`, `/status` | volumen `navigator-data` (identidad) |
 | `fhs-star` | Bastion | `node:24-alpine` | `:4002` | — | volumen `star-data` (identidad) |
-| `llama-server` | Bastion (host, `systemd --user`) | llama.cpp compilado con [PoC-Llama.cpp](https://github.com/rafex/PoC-Llama.cpp) (perfil `apple/macmini6.2`: AVX+F16C, sin BLAS) | — | `:43110` `/v1` (Qwen3.5-0.8B Q4_K_M, `--reasoning off`) | modelos en `/srv/models/gguf` |
+| `llama-server` | Bastion (host, `systemd --user`) | llama.cpp compilado con [PoC-Llama.cpp](https://github.com/rafex/PoC-Llama.cpp) (perfil `apple/macmini6.2`: AVX+F16C, sin BLAS) | — | `:43110` `/v1` (qwen2.5-3b-instruct Q4_K_M) | modelos en `/srv/models/gguf` |
 | `fhs-satellite-ocr` | Raspi4B | `node:24-bookworm`¹ | `:4003` | — | volumen `ocr-data` |
 | `fhs-kb-provider` | Raspi3B | `node:24-alpine` | `:4006` | — | volumen `kb-data` |
 | `fhs-rag-provider` | Raspi3B | `node:24-alpine` | `:4005` | — | volumen `rag-data` |

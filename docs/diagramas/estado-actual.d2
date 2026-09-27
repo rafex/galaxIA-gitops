@@ -1,4 +1,4 @@
-# Estado observado de la PoC — snapshot 2026-09-26 22:13 (CST)
+# Estado observado de la PoC — snapshot 2026-09-26 23:47 (CST)
 # Se actualiza a mano junto con docs/estado-poc.md.
 # Regenerar: scripts/render-diagramas.sh
 
@@ -68,15 +68,15 @@ leyenda: "Leyenda" {
 
 thinkpad: "ThinkPad · .239" {
   class: host
-  portal: "fhs-portal-chat\n464a178 (E2E-026 corregido)" {class: ok}
+  portal: "fhs-portal-chat\nc74ef5d · Markdown + copiar" {class: ok}
 }
 
 bastion: "Bastion · .139 · mbpfan activo" {
   class: host
   atlas: "fhs-atlas\nc1df4f5 · 6 peers\n(5 nodos + navegador)" {class: ok}
-  navigator: "fhs-navigator\nc1df4f5\nconoce star + ocr + kb + rag" {class: ok}
+  navigator: "fhs-navigator\nc74ef5d\nconoce star + ocr + kb + rag" {class: ok}
   star: "fhs-star\n7d7c0bf · streaming real" {class: ok}
-  llama: "llama-server · Qwen3.5-0.8B\nAVX+F16C · --reasoning off\n62 / 27.6 tok/s" {class: ok}
+  llama: "llama-server · qwen2.5-3b\nAVX+F16C · 4 hilos\n16 / 10.6 tok/s" {class: ok}
   star -> llama
 }
 
