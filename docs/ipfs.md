@@ -94,6 +94,34 @@ las del otro rol; peering conectado por la LAN; 214–261 peers públicos. Un
 archivo aleatorio de 300 KB agregado en Bastion se leyó en la Raspi4B con el
 mismo SHA-256 en 0.35 s.
 
+## Clientes: Navigator, OCR y Portal
+
+| Componente | Commit | Variables IPFS | Notas |
+|---|---|---|---|
+| Navigator (Bastion, `fhs-navigator`) | galaxIA-agent `478e3f3` | `IPFS_API_URL=http://127.0.0.1:5001`, `IPFS_API_TOKEN_FILE=/secrets/ipfs.token` (← `~/secrets/ipfs/navigator.token:ro`), `IPFS_NETWORK=public` | Libro de pines y token de admin en el volumen `navigator-data`. Reversa: `fhs-navigator-pre-478e3f3` |
+| OCR (Raspi4B, `fhs-satellite-ocr`) | galaxIA-satellite-star `267f899` | lo mismo con `ocr.token`, más `IPFS_EXPECTED_PEER=<PeerID Kubo Bastion>` | Corre como uid 10001: certificados copiados a `/root/certs/ocr` y `ocr.token` e identidad del uid 10001. Límites `--memory 1g --cpus 2 --pids-limit 256 --read-only --tmpfs /tmp:rw,size=512m` |
+| Portal (ThinkPad, `fhs-portal-chat`) | galaxIA-Core `acd6e7d` | build arg `VITE_FHS_IPFS_GATEWAY_URL=https://ipfs.io/ipfs` | Reversa: `fhs-portal-chat-pre-acd6e7d` |
+
+El OCR anuncia `ipfs.native.public` solo mientras su Kubo responde y el de
+Bastion está conectado. Si no, el Navigator responde "Ningún OCR con acceso a
+IPFS" y no sube nada.
+
+## Compuerta E1.6 (2026-09-27/28)
+
+| Prueba | Resultado |
+|---|---|
+| e2e del Portal (`tests/e2e`, 6 casos, incluido "adjunto vía IPFS público") | 6/6 |
+| Ciclo `ephemeral`: fijado 05:50:17 → OCR lee por su Kubo → liberado 05:51:10 (30 s de gracia + barrido) | ✅ |
+| `repo gc` forzado en ambos nodos → `block stat --offline <cid>` falla en los dos | ✅ |
+| `reuse`: sigue fijado tras la gracia y tras reiniciar el Navigator; API de admin 401 sin token, 404 CID desconocido, 200 `cleanup_scheduled: true`, 409 al repetir; la API no despinea, el barrido sí (55 s después) | ✅ |
+| Reinicio del Navigator 6 s después del OCR (`ephemeral`): fijado a los 100 s, liberado 06:00:16, 5 min exactos tras el reinicio | ✅ |
+| Kubo de la Raspi4B detenido → el OCR deja de anunciar `ipfs.native.public` en 5 s; al volver, lo recupera en 15 s | ✅ |
+| Perímetro desde el Mac: `5001` y `8099` cerrados en ambas IPs; `http://…:8090` sin respuesta, `https://…:8090` sí | ✅ |
+| Kubo: 403 sin token; cada token solo llega a sus rutas | ✅ |
+
+Pendiente, no bloqueante: abrir el CID desde `https://ipfs.io/ipfs/<cid>`
+fuera de la LAN (depende del NAT).
+
 ## Operación
 
 ```bash

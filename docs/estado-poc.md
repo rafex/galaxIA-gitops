@@ -1,6 +1,6 @@
 # Estado de la PoC
 
-> **Snapshot: 2026-09-27 14:55 (CST).** Se actualiza a mano. Cada dato sale
+> **Snapshot: 2026-09-27 23:56 (CST).** Se actualiza a mano. Cada dato sale
 > de un comando corrido en ese momento (`podman ps/inspect`, `/status`,
 > `/health`, `llama-bench`, `doctor.sh`); no se copia de la memoria.
 > Arquitectura y porqués: [`arquitectura-poc.md`](arquitectura-poc.md).
@@ -11,8 +11,13 @@
 OCR, KB y RAG sobre `galaxia-fhs`), con los mismos DID y PeerId; el Portal
 sigue en TypeScript. Atlas ve los 5 nodos, Navigator conoce a los 4
 providers, `doctor.sh` sale sin problemas bloqueantes y la prueba
-`tests/e2e` del Portal pasa 5/5. Los contenedores TS quedaron detenidos
-como reversa (`*-ts-rollback`, `fhs-navigator-pre-6858de5`).
+`tests/e2e` del Portal pasa 6/6. Los contenedores TS quedaron detenidos
+como reversa (`*-ts-rollback`, `fhs-navigator-pre-*`).
+
+**Adjuntos por IPFS nativo en la red pública** (DEC-0095, desde el
+2026-09-27): Kubo en Bastion y Raspi4B, Navigator y OCR con IPFS, Portal con
+la opción "Vía IPFS" y el aviso de privacidad. Detalle en
+[`ipfs.md`](ipfs.md).
 
 ![Estado actual](diagramas/estado-actual.svg)
 
@@ -21,12 +26,14 @@ como reversa (`*-ts-rollback`, `fhs-navigator-pre-6858de5`).
 | Equipo | Contenedores | Código desplegado | Nota |
 |---|---|---|---|
 | Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo (descubrimiento del Navigator en ~1 s, E2E-035) |
-| | `fhs-navigator` | galaxIA-agent `6858de5` | Rust + Rig. Republica su beacon DHT al recuperar Atlas (E2E-034) |
+| | `fhs-navigator` | galaxIA-agent `478e3f3` | Rust + Rig. Republica su beacon DHT al recuperar Atlas (E2E-034). IPFS: sube al Kubo local y lleva el libro de pines (`/data/ipfs-pins.json`); API de admin en `127.0.0.1:8099`. Reversa: `fhs-navigator-pre-478e3f3` |
+| | `fhs-ipfs` | Kubo `v0.43.1` | Red pública, swarm `4101`, API en loopback con tokens; 75–90 MB |
 | | `fhs-star` | satellite-star `eeb295a` (`rust/star`) | 3.2 MB de memoria (TS: 57 MB); `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
 | | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` compilado con PoC-Llama.cpp `8051c41` | **Qwen3.5-2B** Q4_K_M (oficial desde 2026-09-27), `--reasoning off`, 4 hilos: ~27 tok/s leyendo el prompt y ~14 tok/s generando (3 misiones de la prueba e2e). Escucha en `0.0.0.0:43110` |
-| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `6fcf07e` (`rust/ocr`) | Tesseract 5.3 `spa`; imagen de 227 MB (TS: 1.29 GB). Sus contenedores tienen DNS viejo: compilar con `--network host` (E2E-033) |
+| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `267f899` (`rust/ocr`) | Tesseract 5.3 `spa`; imagen de 227 MB (TS: 1.29 GB); 2.5 MB de RAM. uid 10001, `--read-only`, 1 GB / 2 CPU / 256 procesos. Lee IPFS por su Kubo y anuncia `ipfs.native.public` mientras está sano. Reversa: `fhs-satellite-ocr-pre-267f899` |
+| | `fhs-ipfs` | Kubo `v0.43.1` | Igual que el de Bastion, con peering a él por la LAN |
 | Raspi3B `.181` | `fhs-kb-provider`, `fhs-rag-provider` | satellite-star `6fcf07e` (`rust/kb`, `rust/rag`) | 10.4 MB cada uno; la máquina pasó de 188 a 97 MiB usados. Imágenes construidas en la Raspi4B. `KB_DESCRIPTION` ampliada se conserva |
-| ThinkPad `.239` | `fhs-portal-chat` | Core `3cd80fa` | Lee el beacon del DHT (E2E-032) |
+| ThinkPad `.239` | `fhs-portal-chat` | Core `acd6e7d` | Lee el beacon del DHT (E2E-032). Construido con `VITE_FHS_IPFS_GATEWAY_URL=https://ipfs.io/ipfs`. Reversa: `fhs-portal-chat-pre-acd6e7d` |
 
 `mbpfan` controla el ventilador de Bastion: bajo carga sube a 5,500 RPM y
 la CPU se mantiene en 90–93 °C sin perder velocidad (antes el ventilador se
@@ -101,6 +108,13 @@ artículo 3), binario con AVX, 4 hilos:
   a la Raspi3B).
 
 ## Pendiente del operador
+
+- IPFS (DEC-0095): dejar `4101` tcp/udp permitido en la LAN en el UFW de
+  Bastion y de la Raspi4B (hoy el peering conecta, pero la regla de la
+  Raspi4B cubre `4000:4100`) y comprobar que `5001` y `8099` sigan cerrados
+  hacia fuera (verificado desde el Mac el 2026-09-27).
+- Relojes: verificar NTP (`systemd-timesyncd` o chrony) en Bastion, Raspi4B,
+  Raspi3B y ThinkPad antes de la Entrega 2 (reputación, ventana de ±5 min).
 
 - En el Mac, dejar la dirección Wi-Fi privada en **"Fija"** para la red
   galaxIA (la reserva DHCP del Mac depende de esa MAC).
