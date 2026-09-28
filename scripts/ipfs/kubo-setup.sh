@@ -106,6 +106,9 @@ podman run --rm -i --network none \
   "$KUBO_IMAGE" -s <<'EOF'
 set -eu
 [ -f "$IPFS_PATH/config" ] || ipfs init --empty-repo >/dev/null
+# `init` fija el directorio vacío; el libro de pines del Navigator lo
+# reportaría como pin ajeno. No se toca ningún otro pin.
+ipfs pin rm QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn >/dev/null 2>&1 || true
 c() { ipfs config "$@"; }
 c Addresses.API "/ip4/127.0.0.1/tcp/$API_PORT"
 c --json Addresses.Gateway '[]'
