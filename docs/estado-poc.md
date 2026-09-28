@@ -69,7 +69,7 @@ artículo 3), binario con AVX, 4 hilos:
 | Qwen3.5-0.8B | 27 | 1 ("Sydney", "2012") |
 | qwen2.5-1.5b-instruct | 20 | 3 (falla el artículo 3) |
 | qwen2.5-3b-instruct | 10.6 | **4** |
-| **Qwen3.5-2B** (oficial desde 2026-09-27, decisión del dueño) | ~14 | sin correr la batería; pasa la prueba e2e (KB, OCR, RAG) |
+| **Qwen3.5-2B** (oficial desde 2026-09-27, decisión del dueño) | ~14 | 2 ("Sídney"; el artículo 3 lo confunde con el 39). Con la KB sí responde bien el artículo 3: pasa la prueba e2e (KB, OCR, RAG) |
 
 - **Ninguno sabe la hora**: todos la inventan (no hay herramienta que la dé).
 - Qwen3.x **piensa por defecto**: sin `--reasoning off` gastaba todo
