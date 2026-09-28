@@ -93,7 +93,7 @@ bastion: "Bastion · 192.168.1.139\nx86_64 · Debian 13" {
   atlas: "fhs-atlas\nbootstrap libp2p\ngalaxIA-Core/rust" {class: rust}
   navigator: "fhs-navigator\norquestador (Rig)\ngalaxIA-agent" {class: rust}
   star: "fhs-star\nprovider LLM\ngalaxIA-satellite-star/rust" {class: rust}
-  llama: "llama-server\nqwen2.5-3b\nPoC-Llama.cpp" {class: native}
+  llama: "llama-server\nQwen3.5-2B\nPoC-Llama.cpp" {class: native}
   star -> llama: "HTTP /v1\n127.0.0.1:43110" {class: local}
 }
 

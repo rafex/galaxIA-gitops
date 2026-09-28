@@ -22,8 +22,8 @@ como reversa (`*-ts-rollback`, `fhs-navigator-pre-6858de5`).
 |---|---|---|---|
 | Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo (descubrimiento del Navigator en ~1 s, E2E-035) |
 | | `fhs-navigator` | galaxIA-agent `6858de5` | Rust + Rig. Republica su beacon DHT al recuperar Atlas (E2E-034) |
-| | `fhs-star` | satellite-star `eeb295a` (`rust/star`) | 3.2 MB de memoria (TS: 57 MB); `MODEL_ID=qwen2.5-3b-instruct-q4_k_m` |
-| | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` compilado con PoC-Llama.cpp `8051c41` | **qwen2.5-3b-instruct** Q4_K_M, 4 hilos, 10.6 tok/s |
+| | `fhs-star` | satellite-star `eeb295a` (`rust/star`) | 3.2 MB de memoria (TS: 57 MB); `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
+| | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` compilado con PoC-Llama.cpp `8051c41` | **Qwen3.5-2B** Q4_K_M (oficial desde 2026-09-27), `--reasoning off`, 4 hilos: ~27 tok/s leyendo el prompt y ~14 tok/s generando (3 misiones de la prueba e2e). Escucha en `0.0.0.0:43110` |
 | Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `6fcf07e` (`rust/ocr`) | Tesseract 5.3 `spa`; imagen de 227 MB (TS: 1.29 GB). Sus contenedores tienen DNS viejo: compilar con `--network host` (E2E-033) |
 | Raspi3B `.181` | `fhs-kb-provider`, `fhs-rag-provider` | satellite-star `6fcf07e` (`rust/kb`, `rust/rag`) | 10.4 MB cada uno; la máquina pasó de 188 a 97 MiB usados. Imágenes construidas en la Raspi4B. `KB_DESCRIPTION` ampliada se conserva |
 | ThinkPad `.239` | `fhs-portal-chat` | Core `3cd80fa` | Lee el beacon del DHT (E2E-032) |
@@ -68,7 +68,8 @@ artículo 3), binario con AVX, 4 hilos:
 | Qwen3-0.6B | 42 | 1 ("Rogerswell", "Sydney") |
 | Qwen3.5-0.8B | 27 | 1 ("Sydney", "2012") |
 | qwen2.5-1.5b-instruct | 20 | 3 (falla el artículo 3) |
-| **qwen2.5-3b-instruct** | 10.6 | **4** |
+| qwen2.5-3b-instruct | 10.6 | **4** |
+| **Qwen3.5-2B** (oficial desde 2026-09-27, decisión del dueño) | ~14 | sin correr la batería; pasa la prueba e2e (KB, OCR, RAG) |
 
 - **Ninguno sabe la hora**: todos la inventan (no hay herramienta que la dé).
 - Qwen3.x **piensa por defecto**: sin `--reasoning off` gastaba todo
