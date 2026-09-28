@@ -76,6 +76,8 @@ advertencia.
 | `docs/mapa-modulos.md` | Mapa de módulos: repo y ruta, lenguaje y versión, responsabilidad, acoplamiento y máquina/IP donde corre cada uno |
 | `docs/estado-poc.md` | Estado del laboratorio (snapshot fechado): versión desplegada por host, red P2P, pendientes y problemas conocidos |
 | `docs/diagramas/*.d2` | Diagramas en [D2](https://d2lang.com/) (fuente + `.svg` generado) |
+| `scripts/ipfs/kubo-setup.sh`, `kubo-check.sh` | Nodo IPFS (Kubo) por host para los adjuntos, red pública de la demo (DEC-0095): instalación idempotente y compuerta de tokens y peering. Guía en `docs/ipfs.md` |
+| `docs/ipfs.md` | IPFS en la PoC: qué implica la red pública, instalación, verificación, operación y paso a red privada |
 | `scripts/render-diagramas.sh` | Regenera los `.svg` a partir de los `.d2` (`brew install d2`) |
 | `docs/acceso-remoto-demo.md` | Diseño completo, decisiones y guía paso a paso |
 | `.env.example` | Variables a completar (dominio, IP del VPS, token) — **nunca commitear `.env`** |
