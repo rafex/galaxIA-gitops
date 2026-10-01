@@ -74,6 +74,7 @@ advertencia.
 | `scripts/doctor.sh` | Diagnóstico de red desde la máquina de la demo: portal, bootstrap y Navigator (TCP, TLS, SAN, vencimiento), reloj y malla P2P — ✅/⚠️/❌ con pista por fila |
 | `docs/arquitectura-poc.md` | Arquitectura del laboratorio: hardware, qué corre dónde, flujo de un mensaje, decisiones operativas y demo remota esperada |
 | `docs/mapa-modulos.md` | Mapa de módulos: repo y ruta, lenguaje y versión, responsabilidad, acoplamiento y máquina/IP donde corre cada uno |
+| `docs/nodo-movil-calc.md` | Nodo móvil (`/calc`): despliegue, guion de demo de 2 min, regla de despacho y limitaciones |
 | `docs/estado-poc.md` | Estado del laboratorio (snapshot fechado): versión desplegada por host, red P2P, pendientes y problemas conocidos |
 | `docs/diagramas/*.d2` | Diagramas en [D2](https://d2lang.com/) (fuente + `.svg` generado) |
 | `scripts/ipfs/kubo-setup.sh`, `kubo-check.sh` | Nodo IPFS (Kubo) por host para los adjuntos, red pública de la demo (DEC-0095): instalación idempotente y compuerta de tokens y peering. Guía en `docs/ipfs.md` |

@@ -1,0 +1,45 @@
+# Regla de despacho (DEC-0096): ninguna misión sin oferta, puja y asignación.
+# Regenerar: scripts/render-diagramas.sh
+
+direction: down
+
+classes: {
+  paso: { style: { fill: "#E8F1FA"; stroke: "#2F6F9F"; border-radius: 8; font-size: 14; bold: true } }
+  control: { shape: diamond; style: { fill: "#FFF8E6"; stroke: "#B7791F"; font-size: 12 } }
+  ok: { style: { fill: "#E6F4EA"; stroke: "#2E7D32"; border-radius: 8; font-size: 14; bold: true } }
+  prohibido: { style: { fill: "#FDECEA"; stroke: "#C62828"; stroke-width: 2; stroke-dash: 5; border-radius: 8; font-size: 13; font-color: "#C62828" } }
+  flujo: { style: { stroke: "#2F6F9F"; stroke-width: 3 } }
+  veto: { style: { stroke: "#C62828"; stroke-width: 2; stroke-dash: 5; font-color: "#C62828" } }
+}
+
+titulo: "Ningún documento autoriza despachar una misión sin oferta, puja y asignación" {
+  near: top-center
+  shape: text
+  style.font-size: 20
+  style.bold: true
+}
+
+usuario: "👤 Usuario\nescribe /calc …" {class: paso}
+auth: "¿Autorizó\neste uso?" {class: control}
+oferta: "1 · Oferta\nsolo la capacidad\n(sin los datos)" {class: paso}
+puja: "2 · Puja\nlos providers que\nofrecen la capacidad" {class: paso}
+quien: "¿Puede ganar?\n(lista permitida · conexión viva\n· anuncio vigente)" {class: control}
+asigna: "3 · Asignación\nfirmada por el Navigator" {class: paso}
+valida: "El provider valida:\nfirma · mismo Navigator\n· vigencia · un solo uso" {class: control}
+stream: "4 · Stream directo\nlos datos viajan solo ahora" {class: paso}
+resultado: "✔ Resultado validado\n+ procedencia con el DID" {class: ok}
+atajo: "✗ Despacho directo\nal nodo (sin subasta)" {class: prohibido}
+nada: "No se publica nada\nni sale ningún dato" {class: prohibido}
+
+usuario -> auth {class: flujo}
+auth -> oferta: "sí" {class: flujo}
+auth -> nada: "no / vence (60 s)" {class: veto}
+oferta -> puja {class: flujo}
+puja -> quien {class: flujo}
+quien -> asigna: "gana" {class: flujo}
+quien -> nada: "no puede" {class: veto}
+asigna -> valida {class: flujo}
+valida -> stream: "válida" {class: flujo}
+valida -> nada: "sin asignación válida\nrechaza" {class: veto}
+stream -> resultado {class: flujo}
+usuario -> atajo: "prohibido por DEC-0096" {class: veto}

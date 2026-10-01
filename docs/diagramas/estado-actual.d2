@@ -1,58 +1,26 @@
-# Estado observado de la PoC — snapshot 2026-09-26 23:47 (CST)
+# Estado observado de la PoC — snapshot 2026-10-01 (CST)
 # Se actualiza a mano junto con docs/estado-poc.md.
 # Regenerar: scripts/render-diagramas.sh
 
 direction: down
 
 classes: {
-  host: {
-    style: {
-      fill: "#F5F7FA"
-      stroke: "#5B6B7F"
-      border-radius: 6
-      font-size: 15
-      bold: true
-    }
-  }
-  ok: {
-    style: {
-      fill: "#E6F4EA"
-      stroke: "#2E7D32"
-      border-radius: 4
-      font-size: 12
-    }
-  }
-  viejo: {
-    style: {
-      fill: "#FFF6DB"
-      stroke: "#B7791F"
-      border-radius: 4
-      font-size: 12
-    }
-  }
-  caido: {
-    style: {
-      fill: "#FDECEA"
-      stroke: "#C62828"
-      stroke-width: 2
-      border-radius: 4
-      font-size: 12
-    }
-  }
-  enlace: {
-    style: {
-      stroke: "#2E7D32"
-      stroke-width: 2
-    }
-  }
-  roto: {
-    style: {
-      stroke: "#C62828"
-      stroke-width: 2
-      stroke-dash: 5
-      font-color: "#C62828"
-    }
-  }
+  host: { style: { fill: "#F5F7FA"; stroke: "#5B6B7F"; border-radius: 8; font-size: 15; bold: true } }
+  ok: { style: { fill: "#E6F4EA"; stroke: "#2E7D32"; border-radius: 6; font-size: 12 } }
+  nuevo: { style: { fill: "#E0F2FE"; stroke: "#0369A1"; stroke-width: 2; border-radius: 6; font-size: 12 } }
+  movil: { style: { fill: "#F3E8FF"; stroke: "#7E22CE"; stroke-width: 2; border-radius: 14; font-size: 12 } }
+  llm: { shape: hexagon; style: { fill: "#FFF8E6"; stroke: "#B7791F"; font-size: 12 } }
+  viejo: { style: { fill: "#FFF6DB"; stroke: "#B7791F"; border-radius: 6; font-size: 12 } }
+  caido: { style: { fill: "#FDECEA"; stroke: "#C62828"; stroke-width: 2; border-radius: 6; font-size: 12 } }
+  enlace: { style: { stroke: "#2E7D32"; stroke-width: 2 } }
+  nodo: { style: { stroke: "#7E22CE"; stroke-width: 3; font-color: "#7E22CE" } }
+}
+
+titulo: "Estado de la PoC · 2026-10-01 · 7 peers en Atlas, doctor.sh sin bloqueantes" {
+  near: top-center
+  shape: text
+  style.font-size: 20
+  style.bold: true
 }
 
 leyenda: "Leyenda" {
@@ -61,34 +29,42 @@ leyenda: "Leyenda" {
   style.stroke: "#CBD5E0"
   grid-columns: 1
   grid-gap: 8
-  a: "al día con main" {class: ok}
-  b: "arriba, imagen atrasada" {class: viejo}
-  c: "fuera de la red P2P" {class: caido}
+  a: "arriba y en la última versión" {class: ok}
+  b: "nuevo de hoy (nodo móvil, /calc, KB galaxIA)" {class: nuevo}
+  c: "dispositivo móvil" {class: movil}
 }
 
-thinkpad: "ThinkPad · .239" {
+telefono: "📱 Teléfono Android · Firefox" {
   class: host
-  portal: "fhs-portal-chat\nc74ef5d · Markdown + copiar" {class: ok}
+  nodo: "nodo móvil (WASM)\nautodescubierto · math.arithmetic.solve\ntabla de misiones y recursos" {class: movil}
 }
 
-bastion: "Bastion · .139 · mbpfan activo" {
+thinkpad: "ThinkPad · .239 · 15 GB" {
   class: host
-  atlas: "fhs-atlas\nc1df4f5 · 6 peers\n(5 nodos + navegador)" {class: ok}
-  navigator: "fhs-navigator\nc74ef5d\nconoce star + ocr + kb + rag" {class: ok}
-  star: "fhs-star\n7d7c0bf · streaming real" {class: ok}
-  llama: "llama-server · Qwen3.5-2B\nAVX+F16C · 4 hilos\n27 / 14 tok/s" {class: ok}
+  portal: "fhs-portal-chat\ncd60a58\ntarjeta de autorización" {class: nuevo}
+  web: "fhs-satellite-web\ncalc-ops · :8444\npágina del nodo móvil" {class: nuevo}
+}
+
+bastion: "Bastion · .139 · 15 GB · 63 °C" {
+  class: host
+  atlas: "fhs-atlas\nc5f8ec3" {class: ok}
+  navigator: "fhs-navigator\n4a6b6a4\n/calc · FHS_CALC_NODES=*\nrespuestas breves" {class: nuevo}
+  star: "fhs-star\n3f2721c" {class: ok}
+  llama: "llama-server\nQwen3.5-2B\n26 tok/s lee · 13 genera" {class: llm}
+  ipfs: "fhs-ipfs\nKubo v0.43.1" {class: ok}
   star -> llama
 }
 
-raspi3b: "Raspi3B · .181" {
+raspi3b: "Raspi3B · .181 · ~1 GB (850 MB libres)" {
   class: host
-  kb: "fhs-kb-provider\n7d7c0bf · reconecta solo" {class: ok}
-  rag: "fhs-rag-provider\n7d7c0bf · reconecta solo" {class: ok}
+  kb: "fhs-kb-provider\nKB «galaxIA»\n106 secciones · ≤2 fragmentos" {class: nuevo}
+  rag: "fhs-rag-provider\n6fcf07e" {class: ok}
 }
 
-raspi4b: "Raspi4B · .167" {
+raspi4b: "Raspi4B · .167 · 7.7 GB" {
   class: host
-  ocr: "fhs-satellite-ocr\nebf0299 · reconecta solo" {class: ok}
+  ocr: "fhs-satellite-ocr\n267f899\nIPFS nativo" {class: ok}
+  ipfs: "fhs-ipfs\nKubo v0.43.1" {class: ok}
 }
 
 bastion.navigator -> bastion.atlas {class: enlace}
@@ -96,6 +72,9 @@ bastion.star -> bastion.atlas {class: enlace}
 raspi3b.kb -> bastion.atlas {class: enlace}
 raspi3b.rag -> bastion.atlas {class: enlace}
 raspi4b.ocr -> bastion.atlas {class: enlace}
+telefono.nodo -> bastion.atlas: "wss :4001" {class: nodo}
+telefono.nodo <-> bastion.navigator: "wss :4010 · stream de misión" {class: nodo}
+telefono.nodo -> thinkpad.web: "HTTPS :8444" {style.stroke: "#6B46C1"; style.stroke-dash: 3}
 thinkpad.portal -> bastion.atlas: "p2p-config.json → bootstrap .139:4001" {
   style.stroke: "#5B6B7F"
   style.stroke-dash: 3

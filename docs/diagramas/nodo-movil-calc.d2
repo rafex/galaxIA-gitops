@@ -1,0 +1,46 @@
+# Un teléfono presta su cómputo: /calc de punta a punta (DEC-0096, DEC-0097)
+# Regenerar: scripts/render-diagramas.sh
+
+shape: sequence_diagram
+
+user: "👤 Usuario\n(Portal)"
+nav: "Navigator\n(Bastion)"
+atlas: "Atlas\n(malla GossipSub)"
+tel: "📱 Teléfono\n(nodo móvil)"
+star: "Star\n(LLM)"
+
+unirse: "1 · El teléfono se une solo (autodescubrimiento)" {
+  tel -> atlas: "wss + Noise · se conecta" {style.stroke: "#7E22CE"}
+  tel -> atlas: "NodeAdvertise firmado · math.arithmetic.solve · cada 30 s" {style.stroke: "#7E22CE"}
+  atlas -> nav: "reenvía el anuncio"
+  nav -> tel: "marca al teléfono y comprueba PeerId = DID" {style.stroke: "#7E22CE"}
+}
+
+pedir: "2 · Autorización expresa del usuario" {
+  user -> nav: "/calc (12+8)*3^2/4"
+  nav -> user: "tarjeta: nodo, DID y qué se enviará · vence en 60 s" {style.stroke: "#B7791F"}
+  user -> nav: "Autorizar" {style.stroke: "#2E7D32"; style.bold: true}
+  nav.rechazo: "Rechazar o vencer:\nno se publica ninguna oferta" {style.fill: "#FDECEA"; style.stroke: "#C62828"}
+}
+
+subasta: "3 · Subasta (regla de despacho)" {
+  nav -> atlas: "oferta: solo la capacidad, sin la expresión"
+  tel -> atlas: "puja firmada"
+  atlas -> nav: "puja"
+  nav -> atlas: "asignación firmada → teléfono"
+  atlas -> tel: "asignación"
+}
+
+ejecutar: "4 · Stream directo y cálculo" {
+  nav -> tel: "stream sobre la conexión del teléfono\nhandshake + ToolCall (la expresión viaja solo aquí)" {style.stroke: "#2F6F9F"; style.stroke-width: 3}
+  tel -> tel: "valida: oferta + asignación del mismo\nNavigator, vigente, un solo uso" {style.stroke: "#B7791F"}
+  tel -> tel: "WASM en un Worker\n≤200 caracteres · ≤2 s" {style.stroke: "#7E22CE"}
+  tel -> nav: "resultado {\"result\": \"45\"}\n(o error MATH_*)" {style.stroke: "#2E7D32"; style.stroke-width: 3}
+  tel.privado: "La pantalla solo muestra estado y tiempos:\nnunca la expresión ni el resultado" {style.fill: "#F3E8FF"; style.stroke: "#7E22CE"}
+}
+
+responder: "5 · Respuesta con procedencia" {
+  nav -> star: "pide una frase de confirmación"
+  star -> nav: "frase breve"
+  nav -> user: "Resultado: … = 45 (calculado por el nodo móvil)\n+ procedencia con el DID del teléfono" {style.stroke: "#2E7D32"; style.bold: true}
+}

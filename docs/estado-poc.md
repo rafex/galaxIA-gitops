@@ -1,57 +1,94 @@
 # Estado de la PoC
 
-> **Snapshot: 2026-09-27 23:56 (CST).** Se actualiza a mano. Cada dato sale
+> **Snapshot: 2026-10-01 15:40 (CST).** Se actualiza a mano. Cada dato sale
 > de un comando corrido en ese momento (`podman ps/inspect`, `/status`,
 > `/health`, `llama-bench`, `doctor.sh`); no se copia de la memoria.
 > Arquitectura y porqués: [`arquitectura-poc.md`](arquitectura-poc.md).
+> Runbook del nodo móvil: [`nodo-movil-calc.md`](nodo-movil-calc.md).
 
 ## En una línea
 
-**Todo el backend corre en Rust** desde el 2026-09-27 (Atlas, Navigator, Star,
-OCR, KB y RAG sobre `galaxia-fhs`), con los mismos DID y PeerId; el Portal
-sigue en TypeScript. Atlas ve los 5 nodos, Navigator conoce a los 4
-providers, `doctor.sh` sale sin problemas bloqueantes y la prueba
-`tests/e2e` del Portal pasa 6/6. Los contenedores TS quedaron detenidos
-como reversa (`*-ts-rollback`, `fhs-navigator-pre-*`).
-
-**Adjuntos por IPFS nativo en la red pública** (DEC-0095, desde el
-2026-09-27): Kubo en Bastion y Raspi4B, Navigator y OCR con IPFS, Portal con
-la opción "Vía IPFS" y el aviso de privacidad. Detalle en
-[`ipfs.md`](ipfs.md).
+**Un teléfono se une solo a la red y presta su cómputo.** Desde el Portal,
+`/calc` pide autorización expresa, el Navigator despacha con oferta, puja y
+asignación (DEC-0096) y el resultado vuelve con la procedencia del teléfono.
+Todo el backend corre en Rust; Atlas ve **7 peers** (5 nodos, el teléfono y
+el navegador), Navigator conoce a 1 star y 4 satellites y `doctor.sh` sale
+sin problemas bloqueantes. Los contenedores TS y las versiones anteriores
+quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 
 ![Estado actual](diagramas/estado-actual.svg)
+
+## Qué cambió el 2026-10-01
+
+| Novedad | Detalle |
+|---|---|
+| **Nodo móvil** (DEC-0097) | Página servida desde la ThinkPad (`:8444`); el navegador del teléfono es un nodo libp2p que se anuncia con `math.arithmetic.solve`, puja y ejecuta en WASM. Autodescubierto: el Navigator corre con `FHS_CALC_NODES=*` |
+| **Regla de despacho** (DEC-0096) | Ninguna misión sin oferta, puja y asignación; el provider móvil rechaza lo que no tenga asignación válida (firma, mismo Navigator, vigencia, un solo uso) |
+| **Autorización por uso** | `/calc` muestra una tarjeta con el nodo y qué se enviará; "Rechazar" o vencer (60 s) no publica nada. OCR, RAG y KB aún no la piden |
+| **Datos operativos en el teléfono** | Tabla de misiones (estado y tiempos) y recursos del dispositivo; nunca la expresión ni el resultado |
+| **KB «galaxIA»** | 11 documentos públicos en 106 secciones por encabezado, citadas como `archivo › sección`; BM25 y como máximo 2 fragmentos por consulta. Se crea soltando `.md` en una carpeta (`examples/kb-provider/scripts/build-galaxia-kb.sh`) |
+| **Respuestas breves** | El Navigator pide un máximo de 5 oraciones: el prompt se lee a ~26 tok/s en Bastion y cada palabra extra se paga en segundos |
+
+![Regla de despacho](diagramas/regla-despacho.svg)
 
 ## Por equipo
 
 | Equipo | Contenedores | Código desplegado | Nota |
 |---|---|---|---|
-| Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo (descubrimiento del Navigator en ~1 s, E2E-035) |
-| | `fhs-navigator` | galaxIA-agent `478e3f3` | Rust + Rig. Republica su beacon DHT al recuperar Atlas (E2E-034). IPFS: sube al Kubo local y lleva el libro de pines (`/data/ipfs-pins.json`); API de admin en `127.0.0.1:8099`. Reversa: `fhs-navigator-pre-478e3f3` |
-| | `fhs-ipfs` | Kubo `v0.43.1` | Red pública, swarm `4101`, API en loopback con tokens; 75–90 MB |
-| | `fhs-star` | satellite-star `eeb295a` (`rust/star`) | 3.2 MB de memoria (TS: 57 MB); `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
-| | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` compilado con PoC-Llama.cpp `8051c41` | **Qwen3.5-2B** Q4_K_M (oficial desde 2026-09-27), `--reasoning off`, 4 hilos: ~27 tok/s leyendo el prompt y ~14 tok/s generando (3 misiones de la prueba e2e). Escucha en `0.0.0.0:43110` |
-| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `267f899` (`rust/ocr`) | Tesseract 5.3 `spa`; imagen de 227 MB (TS: 1.29 GB); 2.5 MB de RAM. uid 10001, `--read-only`, 1 GB / 2 CPU / 256 procesos. Lee IPFS por su Kubo y anuncia `ipfs.native.public` mientras está sano. Reversa: `fhs-satellite-ocr-pre-267f899` |
-| | `fhs-ipfs` | Kubo `v0.43.1` | Igual que el de Bastion, con peering a él por la LAN |
-| Raspi3B `.181` | `fhs-kb-provider`, `fhs-rag-provider` | satellite-star `6fcf07e` (`rust/kb`, `rust/rag`) | 10.4 MB cada uno; la máquina pasó de 188 a 97 MiB usados. Imágenes construidas en la Raspi4B. `KB_DESCRIPTION` ampliada se conserva |
-| ThinkPad `.239` | `fhs-portal-chat` | Core `acd6e7d` | Lee el beacon del DHT (E2E-032). Construido con `VITE_FHS_IPFS_GATEWAY_URL=https://ipfs.io/ipfs`. Reversa: `fhs-portal-chat-pre-acd6e7d` |
-
-`mbpfan` controla el ventilador de Bastion: bajo carga sube a 5,500 RPM y
-la CPU se mantiene en 90–93 °C sin perder velocidad (antes el ventilador se
-quedaba en el mínimo con la CPU a 95 °C).
+| Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo |
+| | `fhs-navigator` | galaxIA-agent `4a6b6a4` | `/calc`, autodescubrimiento (`FHS_CALC_NODES=*`), respuestas breves. IPFS con libro de pines en `/data/ipfs-pins.json`. Reversa: `fhs-navigator-pre-4a6b6a4` |
+| | `fhs-ipfs` | Kubo `v0.43.1` | Red pública, swarm `4101`, API en loopback con tokens |
+| | `fhs-star` | satellite-star `3f2721c` (`rust/star`) | `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
+| | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` | **Qwen3.5-2B** Q4_K_M, `--reasoning off`, 4 hilos: ~26 tok/s leyendo el prompt y ~13 generando (`llama-bench`). 63 °C |
+| Raspi4B `.167` | `fhs-satellite-ocr` | satellite-star `267f899` (`rust/ocr`) | Tesseract 5.3 `spa`; lee IPFS por su Kubo y anuncia `ipfs.native.public` |
+| | `fhs-ipfs` | Kubo `v0.43.1` | Peering a Bastion por la LAN. Esta máquina también compila las imágenes aarch64 |
+| Raspi3B `.181` | `fhs-kb-provider` | satellite-star `b0fa7e2` (`rust/kb`) | KB «galaxIA»: corpus montado como volumen `/root/kb-galaxia:/app/content`, 106 secciones. Reversa: `fhs-kb-provider-pre-61eb9f5` (Constitución de ejemplo) |
+| | `fhs-rag-provider` | satellite-star `6fcf07e` (`rust/rag`) | ~850 MB libres en la máquina |
+| ThinkPad `.239` | `fhs-portal-chat` | Core `cd60a58` | Tarjeta de autorización de comandos. Reversa: `fhs-portal-chat-pre-cd60a58` |
+| | `fhs-satellite-web` | SDK `a3820ba` (imagen `calc-ops`) | Página del nodo móvil en `:8444`, con CSP y certificado propio (SAN `.239`) |
+| Teléfono Android | Firefox | misma página | Conectado a Atlas y al Navigator; anunciado con `math.arithmetic.solve` |
 
 ### `doctor.sh` desde el Mac
 
 ```
-EXPECTED_PEERS=5 scripts/doctor.sh https://192.168.1.239:8443
+EXPECTED_PEERS=6 scripts/doctor.sh https://192.168.1.239:8443
 ```
 
-Todo ✅: portal, reloj (desfase 0 s), `p2p-config.json`, Atlas `:4001`,
-**6 peers en Atlas** (los 5 nodos + el navegador), Navigator `:4010` en sus
-tres IPs, 1 star + 3 satellites anunciados, malla GossipSub activa. Las 5
-advertencias son las excepciones de certificado autofirmado, esperadas en la
-LAN.
+Sin bloqueantes: portal, reloj (desfase 0 s), `p2p-config.json`, Atlas
+`:4001`, **7 peers en Atlas** (5 nodos + teléfono + navegador), Navigator
+`:4010`, 1 star + 4 satellites anunciados. Las 4 advertencias son las
+excepciones de certificado autofirmado, esperadas en la LAN.
 
-## Qué cambió hoy y por qué
+### Elección del modelo (batería del 2026-10-01)
+
+Ocho modelos ya descargados, mismas tareas que hace la PoC (datos en
+español, respuesta con base en fragmentos de KB, frase de confirmación de
+`/calc` sin cifras nuevas, y selección de KB en JSON); una corrida por
+modelo, temperatura 0, binario con AVX y 4 hilos. Muestra chica: 3–4
+preguntas por categoría.
+
+| Modelo | MB | Lee (tok/s) | Genera (tok/s) | Datos | KB | Confirmación | JSON |
+|---|---|---|---|---|---|---|---|
+| **Qwen3.5-2B** (oficial) | 1,221 | 26 | 13 | 4/4 | 4/4 | 4/4 | 2/3 |
+| qwen2.5-3b | 2,007 | 16 | 10 | 4/4 | 4/4 | 4/4 | **3/3** |
+| Llama-3.2-3B | 1,925 | 16 | 9 | 4/4 | 4/4 | 4/4 | 2/3 |
+| qwen2.5-1.5b | 1,065 | 33 | 19 | 4/4 | 3/4 | 4/4 | 1/3 |
+| LFM2-1.2B | 697 | 44 | 27 | 4/4 | 3/4 | 4/4 | 1/3 |
+| smollm2-1.7b | 1,006 | 28 | 15 | 4/4 | 2/4 | 4/4 | 0/3 |
+| Qwen3.5-0.8B | 507 | 62 | 27 | 3/4 | 4/4 | 4/4 | 2/3 |
+| Llama-3.2-1B | 770 | 47 | 23 | 3/4 | 1/4 | 4/4 | 1/3 |
+
+Se mantiene Qwen3.5-2B: casi perfecto, el doble de rápido leyendo el prompt
+que los de 3 B y ya validado de punta a punta. `qwen2.5-3b` queda como
+respaldo de calidad. Más hilos no ayudan a leer el prompt (4 → 8 hilos:
+26.6 → 28.9 tok/s): el límite es el CPU.
+
+**Latencia medida con la KB:** una pregunta con KB tarda ~15–45 s según los
+fragmentos y la longitud de la respuesta (en frío, más); casi todo es leer el
+prompt. Por eso las secciones son cortas, hay un máximo de 2 fragmentos y el
+Navigator pide respuestas breves.
+
+## Historial · 2026-09-27: qué cambió y por qué
 
 | Problema | Causa | Arreglo |
 |---|---|---|
@@ -97,10 +134,26 @@ artículo 3), binario con AVX, 4 hilos:
 - **El wrapper de llama.cpp no lee el contexto del modelo** ("máx modelo:
   4096"): usa el valor por defecto. Suficiente hoy (Star pide 1024 tokens de
   salida).
-- **La descripción ampliada de la KB vive solo en el contenedor** de la
-  Raspi3B (`KB_DESCRIPTION`); si se recrea sin esa variable vuelve la
-  descripción corta y la recomendación deja de funcionar para preguntas por
-  tema.
+- **La descripción de la KB vive solo en el contenedor** de la Raspi3B
+  (`KB_DESCRIPTION`); si se recrea sin esa variable vuelve la descripción corta
+  y la recomendación deja de funcionar para preguntas por tema.
+- **La búsqueda de la KB es léxica** (BM25, sin embeddings): una pregunta con
+  otras palabras que el texto puede traer la sección equivocada (p. ej. «qué
+  pasa si un nodo no tiene asignación» devuelve la guía de usuario y no la
+  regla de despacho). El modelo de 2 B también puede alucinar detalles aunque
+  tenga la fuente (expandió FHS como «Federated Host System»).
+- **Latencia con KB: 15–45 s por respuesta** (el CPU de Bastion lee ~26 tok/s).
+  La primera pregunta tras un rato inactivo es más lenta.
+- **El nodo móvil solo anuncia con la página visible**: en segundo plano o con
+  la pantalla bloqueada deja de anunciarse y de pujar (el anuncio vence en
+  ≤ 60 s). Con `FHS_CALC_NODES=*` cualquier nodo de la LAN que se anuncie con
+  la capacidad puede ganar; el único control es la autorización del usuario.
+- **La autorización reutiliza `kb.recommended`/`kb.decision`** con una marca en
+  el texto; faltan los mensajes propios en el IDL. OCR, RAG y KB aún no piden
+  autorización por uso.
+- **`provider::serve` del SDK Rust no exige asignación** (el nodo móvil sí).
+- **Las imágenes de la demo se construyeron desde fuentes locales**
+  (`~/stage-calc` en Bastion, `~/stage-kb` en la Raspi4B), no desde GitHub.
 - **Certificados autofirmados:** cada navegador nuevo acepta la excepción en
   el portal, `:4001` y `:4010` (el panel 🩺 da los enlaces). Solución
   definitiva: Let's Encrypt en la demo remota.
@@ -123,10 +176,11 @@ artículo 3), binario con AVX, 4 hilos:
 
 ## Siguiente hito
 
-1. Probar desde el navegador la recomendación de la KB ("¿Qué dice el
-   artículo 3 sobre la educación?") y marcar `TASK-MVPH-0005` como hecha en
-   `galaxIA/spec-native/tasks/mvp-hardening/TASKS.md` (chat y OCR ya
-   funcionan de punta a punta).
-2. **Demo remota** (ver
+1. Ensayar la demo completa con el teléfono (guion de 2 min en
+   [`nodo-movil-calc.md`](nodo-movil-calc.md)) y la KB «galaxIA».
+2. Mensajes `tool.authorization.*` en el IDL y autorización también para OCR,
+   RAG y KB.
+3. Que `provider::serve` exija la asignación, con prueba de conformidad.
+4. **Demo remota** (ver
    [`arquitectura-poc.md`](arquitectura-poc.md#demo-remota-cómo-se-espera-que-funcione)):
    faltan el subdominio y el acceso al VPS.

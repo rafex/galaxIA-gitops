@@ -5,13 +5,9 @@ Un teléfono abre una página servida desde la ThinkPad, se une a la red como Sa
 Navigator despacha con **oferta → puja → asignación → stream** (regla DEC-0096, ver
 `galaxIA/docs/mission.md`). Decisión: DEC-0097.
 
-```
-Teléfono (Wi-Fi 192.168.1.0/24)
-  ├─ abre   https://192.168.1.239:8444/        (ThinkPad, fhs-satellite-web)
-  ├─ marca  wss://192.168.1.139:4001           (Atlas: GossipSub)
-  └─ marca  wss://192.168.1.139:4010           (Navigator: el stream llega por esta conexión)
-Portal (https://192.168.1.239:8443/) ── /calc ──▶ Navigator ── oferta/puja/asignación ──▶ Teléfono
-```
+![/calc de punta a punta](diagramas/nodo-movil-calc.svg)
+
+![Regla de despacho](diagramas/regla-despacho.svg)
 
 ## Contenedores
 
@@ -50,9 +46,13 @@ podman run -d --name fhs-satellite-web --restart always -p 8444:443 \
   localhost/galaxia-satellite-web:<tag>
 ```
 
-Navigator (Bastion): `scripts/calc/deploy-navigator.sh <commit> <DID del teléfono>`. El DID aparece en la
-página del teléfono (botón "Copiar"). Sin DID, `/calc` responde que no hay nodos de cálculo.
+Navigator (Bastion): `scripts/calc/deploy-navigator.sh <commit> [DID,...]`. Por defecto usa
+`FHS_CALC_NODES=*` (autodescubrimiento: cualquier nodo que se anuncie con la capacidad); con una
+lista de DIDs solo esos pueden ganar. El DID aparece en la página del teléfono (botón "Copiar").
 El script deja la reversa `fhs-navigator-pre-<commit>` (detenida, sin reinicio automático).
+
+La página del teléfono muestra el resumen de misiones, una tabla por misión (estado, respuesta,
+cómputo) y los recursos del dispositivo, **sin la expresión ni el resultado**.
 
 Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/24 to any port 8444 proto tcp`.
 
@@ -78,7 +78,7 @@ Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/
 
 - El anuncio del Navigator debe traer `/ip4/192.168.1.139/tcp/4010/tls/ws` (no `0.0.0.0`).
 - `curl -sk https://192.168.1.239:8444/p2p-config.json` devuelve el bootstrap.
-- Un nodo que no esté en `FHS_CALC_NODES` nunca gana, aunque puje.
+- Con una lista en `FHS_CALC_NODES`, un nodo que no esté en ella nunca gana, aunque puje.
 
 ## Limitaciones conocidas (seguimiento)
 

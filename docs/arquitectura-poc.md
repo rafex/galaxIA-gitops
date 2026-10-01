@@ -18,7 +18,7 @@ en [`diagramas/`](diagramas/) y los SVG se regeneran con
 
 ## Hardware
 
-Cinco equipos en la **red soberana `192.168.1.0/24`**, detrás de un router
+Cinco equipos (más el teléfono, que se une solo) en la **red soberana `192.168.1.0/24`**, detrás de un router
 OpenWrt 25.12 (`192.168.1.1`). Cada equipo tiene una **reserva DHCP fija**,
 porque las IPs están grabadas en el SAN del certificado y en las multiaddrs
 anunciadas: si una IP cambia, se rompe TLS.
@@ -28,8 +28,9 @@ anunciadas: si una IP cambia, se rompe TLS.
 | **Bastion** | `.139` | x86_64 · 8 núcleos · 15 GB | podman 5.4 rootless (linger) | Atlas, Navigator, Star y `llama-server` |
 | **Raspi4B** | `.167` | aarch64 · 7.7 GB | podman 5.4 root | Satellite OCR (Tesseract) |
 | **Raspi3B «portal-pi»** | `.181` | aarch64 · **~1 GB** | podman 5.4 root | KB provider y RAG provider |
-| **ThinkPad** | `.239` | x86_64 · 4 núcleos · 15 GB | podman 5.8 rootless | Portal Chat (el frontend) |
+| **ThinkPad** | `.239` | x86_64 · 4 núcleos · 15 GB | podman 5.8 rootless | Portal Chat y la página del nodo móvil |
 | **Mac** | `.102` | arm64 | — | Navegador del operador y de la demo |
+| **Teléfono** | DHCP (`.118` en las pruebas) | Android · Firefox | — | Nodo móvil: presta cómputo desde el navegador |
 
 ## Qué corre dónde
 
@@ -44,7 +45,13 @@ anunciadas: si una IP cambia, se rompe TLS.
 | `fhs-satellite-ocr` | Raspi4B | `node:24-bookworm`¹ | `:4003` | — | volumen `ocr-data` |
 | `fhs-kb-provider` | Raspi3B | `node:24-alpine` | `:4006` | — | volumen `kb-data` |
 | `fhs-rag-provider` | Raspi3B | `node:24-alpine` | `:4005` | — | volumen `rag-data` |
-| `fhs-portal-chat` | ThinkPad | `nginx:alpine` | — | `:8443` HTTPS (`p2p-config.json`); único con `-p` en vez de red host | `~/certs/portal-chat` |
+| `fhs-portal-chat` | ThinkPad | `nginx:alpine` | — | `:8443` HTTPS (`p2p-config.json`); usa `-p` en vez de red host | `~/certs/portal-chat` |
+| `fhs-satellite-web` | ThinkPad | `nginx:1.27-alpine` | — | `:8444` HTTPS: página del nodo móvil (WASM) con CSP y `p2p-config.json` | `~/certs/satellite-web` |
+
+> Desde el 2026-09-27 Atlas, Navigator, Star, OCR, KB y RAG corren en **Rust**
+> (imágenes `galaxia-*-rs` / `galaxia-agent`, Debian slim); la columna «Imagen
+> base» describe las imágenes TS anteriores, que quedan como reversa. Versiones
+> y estado: [`estado-poc.md`](estado-poc.md).
 
 ¹ OCR usa Debian porque Tesseract (`tesseract-ocr-spa`, `poppler-utils`) no
 tiene paquetes Alpine estables.
@@ -57,6 +64,55 @@ a la vez. Ver `galaxIA-Core/docs/distribucion-imagenes.md`.
 ## Cómo fluye un mensaje
 
 ![Flujo de un mensaje](diagramas/flujo-mensaje.svg)
+
+## Un teléfono presta su cómputo (`/calc`)
+
+El teléfono abre la página de la ThinkPad (`:8444`) y su navegador se vuelve
+un nodo libp2p: marca a Atlas y al Navigator, se anuncia con la capacidad
+`math.arithmetic.solve` y puja por las misiones. No escucha conexiones: el
+Navigator abre el stream **sobre la conexión que el teléfono inició**
+(`provider_multiaddrs` vacías; PeerId derivado del DID). El nodo se descubre
+solo: el Navigator corre con `FHS_CALC_NODES=*` y toma cualquier satélite
+anunciado, con anuncio vigente y conexión viva.
+
+![/calc de punta a punta](diagramas/nodo-movil-calc.svg)
+
+Qué protege al usuario y al dato:
+
+- **Autorización por uso.** Los comandos (`/calc`) muestran una tarjeta con el
+  nodo y qué se enviará; "Rechazar" o 60 s sin respuesta no publican nada.
+- **Regla de despacho (DEC-0096).** *Ningún documento autoriza despachar una
+  misión sin oferta, puja y asignación.* La oferta lleva solo la capacidad; la
+  expresión viaja únicamente por el stream posterior a la asignación, y el
+  teléfono rechaza lo que no tenga una asignación válida (firma, mismo
+  Navigator, `mission_id`, vigencia, un solo uso).
+- **Entrada y salida acotadas.** El nodo acepta ≤ 200 caracteres, profundidad
+  ≤ 32 y ≤ 2 s; el Navigator valida el resultado (`^-?[0-9]+(\.[0-9]+)?$`) y
+  traduce los errores `MATH_*` a textos propios.
+- **Confidencialidad en el dispositivo.** La pantalla del teléfono muestra solo
+  estado, tiempos y recursos, nunca la expresión ni el resultado.
+
+![Regla de despacho](diagramas/regla-despacho.svg)
+
+Decisiones: [DEC-0096](https://github.com/rafex/galaxIA/blob/main/spec-native/DECISIONS.md)
+y DEC-0097 en `galaxIA/spec-native/DECISIONS.md`. Despliegue y guion de demo:
+[`nodo-movil-calc.md`](nodo-movil-calc.md).
+
+## Una KB se crea con una carpeta
+
+El provider de KB carga al arrancar todos los `.md` y `.txt` de
+`KB_CONTENT_DIR`. Cada archivo Markdown se parte **por encabezado** (con la
+ruta de títulos) y cada sección se cita como `archivo › sección`. La búsqueda
+es léxica (BM25, sin palabras vacías ni acentos); una pregunta sin palabras en
+común no devuelve nada, así que la KB no inventa. La KB de la demo,
+«galaxIA», sale de la documentación pública del proyecto:
+
+```bash
+GALAXIA_DOCS=../galaxIA examples/kb-provider/scripts/build-galaxia-kb.sh ./content-galaxia
+# copiar la carpeta al nodo, montarla en /app/content y reiniciar el contenedor
+```
+
+El script rechaza el corpus si encuentra IPs privadas, PeerIDs o claves.
 
 El punto clave: **el navegador es un nodo libp2p más**. El portal solo sirve
 HTML y la dirección del bootstrap. Todo lo demás es P2P desde el navegador:

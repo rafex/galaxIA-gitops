@@ -10,7 +10,7 @@ classes: {
     style: {
       fill: "#F5F7FA"
       stroke: "#5B6B7F"
-      border-radius: 6
+      border-radius: 8
       font-size: 16
       bold: true
     }
@@ -19,79 +19,102 @@ classes: {
     style: {
       fill: "#FFFFFF"
       stroke: "#2F6F9F"
-      border-radius: 4
+      border-radius: 6
       font-size: 13
     }
   }
   llm: {
+    shape: hexagon
     style: {
       fill: "#FFF8E6"
       stroke: "#B7791F"
-      border-radius: 4
       font-size: 13
     }
   }
-  p2p: {
+  store: {
+    shape: cylinder
     style: {
-      stroke: "#2F6F9F"
+      fill: "#EEF2FF"
+      stroke: "#4C51BF"
+      font-size: 12
+    }
+  }
+  movil: {
+    style: {
+      fill: "#F3E8FF"
+      stroke: "#7E22CE"
       stroke-width: 2
+      border-radius: 14
+      font-size: 13
     }
   }
-  browser: {
-    style: {
-      stroke: "#0F766E"
-      stroke-width: 3
-      font-color: "#0F766E"
-    }
-  }
-  web: {
-    style: {
-      stroke: "#6B46C1"
-      stroke-width: 2
-    }
-  }
+  p2p: { style: { stroke: "#2F6F9F"; stroke-width: 2 } }
+  browser: { style: { stroke: "#0F766E"; stroke-width: 3; font-color: "#0F766E" } }
+  web: { style: { stroke: "#6B46C1"; stroke-width: 2; stroke-dash: 4 } }
+  nodo: { style: { stroke: "#7E22CE"; stroke-width: 3; font-color: "#7E22CE" } }
 }
 
-mac: "Mac · .102\narm64" {
+titulo: "galaxIA · PoC en la red soberana 192.168.1.0/24" {
+  near: top-center
+  shape: text
+  style.font-size: 22
+  style.bold: true
+}
+
+mac: "💻 Mac · .102\narm64" {
   class: host
   navegador: "Navegador\n(nodo libp2p en JS)" {class: svc}
 }
 
+telefono: "📱 Teléfono · Android\nFirefox" {
+  class: host
+  nodo: "Nodo móvil (WASM)\nofrece math.arithmetic.solve\nmuestra solo estado y tiempos" {class: movil}
+}
+
 thinkpad: "ThinkPad · .239\nx86_64 · 15 GB · podman rootless" {
   class: host
-  portal: "fhs-portal-chat\nnginx · :8443" {class: svc}
+  portal: "fhs-portal-chat\nnginx · :8443\ntarjeta de autorización" {class: svc}
+  web: "fhs-satellite-web\nnginx · :8444\npágina del nodo móvil" {class: svc}
 }
 
 bastion: "Bastion · .139\nx86_64 · 8 núcleos · 15 GB · podman rootless" {
   class: host
   atlas: "fhs-atlas\nbootstrap · P2P :4001 · API :8081" {class: svc}
-  navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090" {class: svc}
+  navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090\nsubasta · /calc · FHS_CALC_NODES=*" {class: svc}
   star: "fhs-star\nLLM provider · P2P :4002" {class: svc}
-  llama: "llama-server (systemd --user)\nQwen3.5-2B · :43110" {class: llm}
+  llama: "llama-server\nQwen3.5-2B · :43110" {class: llm}
+  ipfs: "fhs-ipfs (Kubo)\nadjuntos · red pública" {class: store}
   star -> llama: "HTTP /v1"
 }
 
 raspi4b: "Raspi4B · .167\naarch64 · 7.7 GB · podman root" {
   class: host
   ocr: "fhs-satellite-ocr\nTesseract · P2P :4003" {class: svc}
+  ipfs: "fhs-ipfs (Kubo)" {class: store}
 }
 
 raspi3b: "Raspi3B «portal-pi» · .181\naarch64 · ~1 GB · podman root" {
   class: host
-  kb: "fhs-kb-provider\nP2P :4006" {class: svc}
+  kb: "fhs-kb-provider\nKB «galaxIA» · P2P :4006" {class: svc}
   rag: "fhs-rag-provider\nP2P :4005" {class: svc}
 }
 
-# Web: el navegador baja el portal y su p2p-config.json
-mac.navegador -> thinkpad.portal: "HTTPS :8443\nHTML + p2p-config.json" {class: web}
+# Web: los navegadores bajan la página y su p2p-config.json
+mac.navegador -> thinkpad.portal: "HTTPS :8443" {class: web}
+telefono.nodo -> thinkpad.web: "HTTPS :8444\nHTML + WASM + p2p-config.json" {class: web}
 
 # P2P: el navegador entra al swarm por Atlas y dialea directo a Navigator
 mac.navegador -> bastion.atlas: "wss :4001\n1) bootstrap" {class: browser}
 mac.navegador -> bastion.navigator: "wss :4010\n2) sesión de chat" {class: browser}
 
+# El teléfono hace lo mismo y además se anuncia como proveedor
+telefono.nodo -> bastion.atlas: "wss :4001\nanuncio firmado + pujas" {class: nodo}
+telefono.nodo <-> bastion.navigator: "wss :4010\nel Navigator abre el stream\nsobre esta conexión" {class: nodo}
+
 # Cada provider y Navigator se enganchan a Atlas (dialBootstraps con reintento)
-bastion.navigator -> bastion.atlas: "bootstrap" {class: p2p}
-bastion.star -> bastion.atlas: "bootstrap" {class: p2p}
-raspi4b.ocr -> bastion.atlas: "bootstrap" {class: p2p}
-raspi3b.kb -> bastion.atlas: "bootstrap" {class: p2p}
-raspi3b.rag -> bastion.atlas: "bootstrap" {class: p2p}
+bastion.navigator -> bastion.atlas {class: p2p}
+bastion.star -> bastion.atlas {class: p2p}
+raspi4b.ocr -> bastion.atlas {class: p2p}
+raspi3b.kb -> bastion.atlas {class: p2p}
+raspi3b.rag -> bastion.atlas {class: p2p}
+bastion.ipfs <-> raspi4b.ipfs: "peering LAN" {style.stroke: "#4C51BF"; style.stroke-dash: 3}
