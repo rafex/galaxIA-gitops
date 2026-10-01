@@ -83,10 +83,14 @@ que los de 3 B y ya validado de punta a punta. `qwen2.5-3b` queda como
 respaldo de calidad. Más hilos no ayudan a leer el prompt (4 → 8 hilos:
 26.6 → 28.9 tok/s): el límite es el CPU.
 
-**Latencia medida con la KB:** una pregunta con KB tarda ~15–45 s según los
-fragmentos y la longitud de la respuesta (en frío, más); casi todo es leer el
-prompt. Por eso las secciones son cortas, hay un máximo de 2 fragmentos y el
-Navigator pide respuestas breves.
+**Latencia medida con la KB (2026-10-01):** una pregunta con KB tarda **~38–44 s**
+de punta a punta (primer texto a los 20–24 s; el resto es generar ~460 caracteres a
+13 tok/s). Casi todo es leer el prompt (~26 tok/s). Por eso las secciones son
+cortas, la KB devuelve como máximo 2 fragmentos y el Navigator pide respuestas
+breves. Se probó usar los fragmentos de la KB directamente, sin la fusión por RAG,
+cuando hay una sola KB: no ahorró tiempo (primer texto a los 20 s) y la respuesta
+inventó datos, así que se revirtió. Para bajar de ahí hace falta un modelo más
+rápido o menos contexto, a costa de calidad.
 
 ## Historial · 2026-09-27: qué cambió y por qué
 
@@ -142,7 +146,7 @@ artículo 3), binario con AVX, 4 hilos:
   pasa si un nodo no tiene asignación» devuelve la guía de usuario y no la
   regla de despacho). El modelo de 2 B también puede alucinar detalles aunque
   tenga la fuente (expandió FHS como «Federated Host System»).
-- **Latencia con KB: 15–45 s por respuesta** (el CPU de Bastion lee ~26 tok/s).
+- **Latencia con KB: ~40 s por respuesta** (el CPU de Bastion lee ~26 tok/s).
   La primera pregunta tras un rato inactivo es más lenta.
 - **El nodo móvil solo anuncia con la página visible**: en segundo plano o con
   la pantalla bloqueada deja de anunciarse y de pujar (el anuncio vence en
