@@ -12,7 +12,7 @@
 set -euo pipefail
 
 commit=${1:?uso: deploy-navigator.sh <commit> [DID,...]}
-calc_nodes=${2:-}
+calc_nodes=${2:-*}   # "*" = cualquier nodo que se anuncie con la capacidad (autodescubrimiento)
 image="localhost/galaxia-agent:${commit}"
 atlas="/ip4/192.168.1.139/tcp/4001/tls/ws/p2p/12D3KooWL2kvLw4MgPbTTpgKBMsHfVjnpp26AVL54VwWkantYHoL"
 
