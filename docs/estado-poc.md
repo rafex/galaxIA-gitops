@@ -18,6 +18,20 @@ quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 
 ![Estado actual](diagramas/estado-actual.svg)
 
+## Qué cambió el 2026-10-02
+
+| Novedad | Detalle |
+|---|---|
+| **Comandos autodescubiertos** (SPEC-CMD-0001, DEC-0100) | El Navigator no tiene `/calc` cableado: el teléfono declara su comando en el anuncio firmado; el Navigator lo admite según el registro cerrado y `FHS_COMMAND_NODES`. `/ayuda` es local y un `/nombre` desconocido (p. ej. `/leer`) se responde sin pasar por el LLM. Portal con autocompletado. Verificado en el laboratorio con un nodo móvil headless (huella del contrato y digest idénticos a los de los fixtures) |
+| **Frescura del anuncio** | Reloj ±120 s, TTL 1–120 s, `timestamp` estrictamente creciente por DID; la vida de un nodo sale del anuncio, no de la recepción |
+| **Autorización por uso** | Desplegada el 2026-10-01 (SPEC-AUTH-0001): OCR, IPFS, RAG, KB, comandos y herramientas del LLM piden su propia tarjeta |
+
+Imágenes del 2026-10-02: Atlas `galaxia-atlas-rs:cmd-aeb82f6` (reversa `fhs-atlas-pre-cmd`), Navigator
+`galaxia-agent:6785fbe` (reversa `fhs-navigator-pre-6785fbe`), página del nodo móvil
+`galaxia-satellite-web:cmd-6b24438` (reversa `fhs-satellite-web-pre-cmd`) y Portal
+`galaxia-portal-chat:cmd-aeb82f6` (reversa `fhs-portal-chat-pre-cmd`). Hasta que el teléfono recargue la
+página, no declara comandos (`fhs_version` 0.2).
+
 ## Qué cambió el 2026-10-01
 
 | Novedad | Detalle |
@@ -35,8 +49,8 @@ quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 
 | Equipo | Contenedores | Código desplegado | Nota |
 |---|---|---|---|
-| Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo |
-| | `fhs-navigator` | galaxIA-agent `4a6b6a4` | `/calc`, autodescubrimiento (`FHS_COMMAND_NODES=*`), respuestas breves. IPFS con libro de pines en `/data/ipfs-pins.json`. Reversa: `fhs-navigator-pre-4a6b6a4` |
+| Bastion `.139` | `fhs-atlas` | Core `aeb82f6` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo. Reversa: `fhs-atlas-pre-cmd` |
+| | `fhs-navigator` | galaxIA-agent `6785fbe` | Comandos autodescubiertos (`FHS_COMMAND_NODES=*`), autorización por uso, respuestas breves. IPFS con libro de pines en `/data/ipfs-pins.json`. Reversa: `fhs-navigator-pre-6785fbe` |
 | | `fhs-ipfs` | Kubo `v0.43.1` | Red pública, swarm `4101`, API en loopback con tokens |
 | | `fhs-star` | satellite-star `3f2721c` (`rust/star`) | `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
 | | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` | **Qwen3.5-2B** Q4_K_M, `--reasoning off`, 4 hilos: ~26 tok/s leyendo el prompt y ~13 generando (`llama-bench`). 63 °C |
