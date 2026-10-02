@@ -67,7 +67,7 @@ Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/
 ## Guion de demo (≈ 2 min)
 
 1. Teléfono: "Unirme a la red" → "✓ red · ✓ Navigator".
-2. Portal: `/calc (12+8)*3^2/4` → tarjeta **Autorización requerida** → **Autorizar**.
+2. Portal: `/calc (12+8)*3^2/4` → tarjeta de autorización (SPEC-AUTH-0001) → **Autorizar lo seleccionado**.
    El teléfono muestra "puja enviada", "asignada" y la expresión; el chat muestra `Resultado: … = 45`
    y la procedencia con el DID del teléfono.
 3. `/calc 1/0` → autorizar → "División por cero".
@@ -80,9 +80,21 @@ Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/
 - `curl -sk https://192.168.1.239:8444/p2p-config.json` devuelve el bootstrap.
 - Con una lista en `FHS_CALC_NODES`, un nodo que no esté en ella nunca gana, aunque puje.
 
+## Autorización por uso (SPEC-AUTH-0001, DEC-0099)
+
+Todo contenido que sale del Navigator (OCR, IPFS, RAG, KB, comandos y herramientas pedidas por
+el LLM) pasa por una tarjeta de autorización: un ítem por envío, de un solo uso, ligado al
+digest de los bytes y al nodo exacto, con vencimiento de 60 s. Solo el mensaje literal al Star
+elegido es implícito. Variables del Navigator:
+
+- `FHS_TRUSTED_NODES`: DIDs verificados por el operador (nivel `operator` en la tarjeta).
+- `AUTH_AUDIT_PATH` (por defecto `/data/authorization-audit.log`): bitácora JSONL sin contenido.
+- `FHS_AUTH_POLICY=allow-synthetic|deny`: solo sin interfaz (sondas y pruebas con datos sintéticos).
+
+El Navigator TypeScript (`galaxIA-Core/apps/navigator`) **no es conforme**: tiene OCR, IPFS, RAG,
+KB y herramientas desactivados. El de referencia es `galaxia-agent` (Rust).
+
 ## Limitaciones conocidas (seguimiento)
 
-- Autorización reutiliza `kb.recommended`/`kb.decision`; falta `tool.authorization.*` en el IDL.
-- OCR, RAG y KB aún no piden autorización por uso.
 - `provider::serve` del SDK Rust no exige asignación (el nodo móvil sí).
 - Las firmas FHS no cubren `multiaddrs`, `trust_level` ni las capacidades de la oferta; sin anti-replay.

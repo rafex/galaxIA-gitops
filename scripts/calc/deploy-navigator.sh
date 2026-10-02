@@ -14,6 +14,9 @@ set -euo pipefail
 commit=${1:?uso: deploy-navigator.sh <commit> [DID,...]}
 calc_nodes=${2:-*}   # "*" = cualquier nodo que se anuncie con la capacidad (autodescubrimiento)
 image="localhost/galaxia-agent:${commit}"
+# SPEC-AUTH-0001: DIDs verificados por el operador (se muestran como "verificado" en la
+# tarjeta de autorización); vacío = ninguno. FHS_AUTH_POLICY solo para pruebas sin cabeza.
+trusted_nodes=${FHS_TRUSTED_NODES:-}
 atlas="/ip4/192.168.1.139/tcp/4001/tls/ws/p2p/12D3KooWL2kvLw4MgPbTTpgKBMsHfVjnpp26AVL54VwWkantYHoL"
 
 podman image exists "$image" || { echo "falta la imagen $image" >&2; exit 1; }
@@ -37,6 +40,8 @@ podman run -d --name fhs-navigator --network host --user 0 --restart always \
   -e FHS_ANNOUNCE_ADDRS=/ip4/192.168.1.139/tcp/4010/tls/ws \
   -e FHS_ADVERTISE_AS_NAVIGATOR=true \
   -e FHS_CALC_NODES="$calc_nodes" \
+  -e FHS_TRUSTED_NODES="$trusted_nodes" \
+  -e AUTH_AUDIT_PATH=/data/authorization-audit.log \
   -e IDENTITY_KEY_PATH=/data/.fhs-identity-navigator.json \
   -e TLS_CERT_PATH=/certs/dev.crt -e TLS_KEY_PATH=/certs/dev.key \
   -e NODE_EXTRA_CA_CERTS=/certs/dev.crt \
