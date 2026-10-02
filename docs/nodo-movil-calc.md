@@ -67,7 +67,7 @@ Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/
 ## Guion de demo (≈ 2 min)
 
 1. Teléfono: "Unirme a la red" → "✓ red · ✓ Navigator".
-2. Portal: `/calc (12+8)*3^2/4` → tarjeta de autorización (SPEC-AUTH-0001) → **Autorizar lo seleccionado**.
+2. Portal: `/calc (12+8)*3^2/4` → tarjeta de autorización (SPEC-AUTHZ-0001) → **Autorizar lo seleccionado**.
    El teléfono muestra "puja enviada", "asignada" y la expresión; el chat muestra `Resultado: … = 45`
    y la procedencia con el DID del teléfono.
 3. `/calc 1/0` → autorizar → "División por cero".
@@ -95,7 +95,7 @@ la capacidad está en el registro cerrado (`idl/command-capabilities.json`) y el
   (ruta de un registro alterno; si no valida, el Navigator no arranca), `FHS_TRUSTED_NODES`.
 - Orden de despliegue (la spec): SDK/IDL → Atlas → Navigator → nodo móvil → Portal.
 
-## Autorización por uso (SPEC-AUTH-0001, DEC-0099)
+## Autorización por uso (SPEC-AUTHZ-0001, DEC-0099)
 
 Todo contenido que sale del Navigator (OCR, IPFS, RAG, KB, comandos y herramientas pedidas por
 el LLM) pasa por una tarjeta de autorización: un ítem por envío, de un solo uso, ligado al

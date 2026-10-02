@@ -15,7 +15,7 @@ set -euo pipefail
 commit=${1:?uso: deploy-navigator.sh <commit> [DID,...]}
 command_nodes=${2:-*}   # "*" = cualquier nodo cuyo anuncio firmado declare comandos admitidos; sin valor, ninguno
 image="localhost/galaxia-agent:${commit}"
-# SPEC-AUTH-0001: DIDs verificados por el operador (se muestran como "verificado" en la
+# SPEC-AUTHZ-0001: DIDs verificados por el operador (se muestran como "verificado" en la
 # tarjeta de autorización); vacío = ninguno. FHS_AUTH_POLICY solo para pruebas sin cabeza.
 trusted_nodes=${FHS_TRUSTED_NODES:-}
 atlas="/ip4/192.168.1.139/tcp/4001/tls/ws/p2p/12D3KooWL2kvLw4MgPbTTpgKBMsHfVjnpp26AVL54VwWkantYHoL"

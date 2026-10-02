@@ -24,7 +24,7 @@ quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 |---|---|
 | **Comandos autodescubiertos** (SPEC-CMD-0001, DEC-0100) | El Navigator no tiene `/calc` cableado: el teléfono declara su comando en el anuncio firmado; el Navigator lo admite según el registro cerrado y `FHS_COMMAND_NODES`. `/ayuda` es local y un `/nombre` desconocido (p. ej. `/leer`) se responde sin pasar por el LLM. Portal con autocompletado. Verificado en el laboratorio con un nodo móvil headless (huella del contrato y digest idénticos a los de los fixtures) |
 | **Frescura del anuncio** | Reloj ±120 s, TTL 1–120 s, `timestamp` estrictamente creciente por DID; la vida de un nodo sale del anuncio, no de la recepción |
-| **Autorización por uso** | Desplegada el 2026-10-01 (SPEC-AUTH-0001): OCR, IPFS, RAG, KB, comandos y herramientas del LLM piden su propia tarjeta |
+| **Autorización por uso** | Desplegada el 2026-10-01 (SPEC-AUTHZ-0001): OCR, IPFS, RAG, KB, comandos y herramientas del LLM piden su propia tarjeta |
 
 Imágenes del 2026-10-02: Atlas `galaxia-atlas-rs:cmd-aeb82f6` (reversa `fhs-atlas-pre-cmd`), Navigator
 `galaxia-agent:6785fbe` (reversa `fhs-navigator-pre-6785fbe`), página del nodo móvil
