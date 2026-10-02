@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# Recrea fhs-navigator en Bastion con /calc (FHS_CALC_NODES) y deja la reversa.
+# Recrea fhs-navigator en Bastion con comandos autodescubiertos (FHS_COMMAND_NODES,
+# SPEC-CMD-0001) y deja la reversa.
 #
-#   deploy-navigator.sh <commit> [DID_celular[,DID_celular...]]
+#   deploy-navigator.sh <commit> [*|DID[,DID...]]
 #
 # - La imagen localhost/galaxia-agent:<commit> ya debe existir en Bastion.
 # - El contenedor anterior se conserva detenido como fhs-navigator-pre-<commit>
 #   (sin reinicio automático) para volver con:
 #     podman rm -f fhs-navigator && podman rename fhs-navigator-pre-<commit> fhs-navigator \
 #       && podman update --restart always fhs-navigator && podman start fhs-navigator
-# - Sin DID, /calc responde que no hay nodos de cálculo configurados.
+# - Sin lista, ningún comando abierto: /ayuda responde que no hay comandos.
 set -euo pipefail
 
 commit=${1:?uso: deploy-navigator.sh <commit> [DID,...]}
-calc_nodes=${2:-*}   # "*" = cualquier nodo que se anuncie con la capacidad (autodescubrimiento)
+command_nodes=${2:-*}   # "*" = cualquier nodo cuyo anuncio firmado declare comandos admitidos; sin valor, ninguno
 image="localhost/galaxia-agent:${commit}"
 # SPEC-AUTH-0001: DIDs verificados por el operador (se muestran como "verificado" en la
 # tarjeta de autorización); vacío = ninguno. FHS_AUTH_POLICY solo para pruebas sin cabeza.
@@ -39,7 +40,7 @@ podman run -d --name fhs-navigator --network host --user 0 --restart always \
   -e FHS_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/4010/tls/ws \
   -e FHS_ANNOUNCE_ADDRS=/ip4/192.168.1.139/tcp/4010/tls/ws \
   -e FHS_ADVERTISE_AS_NAVIGATOR=true \
-  -e FHS_CALC_NODES="$calc_nodes" \
+  -e FHS_COMMAND_NODES="$command_nodes" \
   -e FHS_TRUSTED_NODES="$trusted_nodes" \
   -e AUTH_AUDIT_PATH=/data/authorization-audit.log \
   -e IDENTITY_KEY_PATH=/data/.fhs-identity-navigator.json \

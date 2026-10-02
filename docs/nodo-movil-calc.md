@@ -15,7 +15,7 @@ Navigator despacha con **oferta → puja → asignación → stream** (regla DEC
 |---|---|---|---|---|
 | ThinkPad | `fhs-portal-chat` | `galaxia-portal-chat:<commit>` | 8443 | Sin cambios; la tarjeta de autorización viene en `cd60a58` o posterior |
 | ThinkPad | `fhs-satellite-web` | `galaxia-satellite-web:<tag>` | 8444 | Página del nodo móvil; independiente del Portal |
-| Bastion | `fhs-navigator` | `galaxia-agent:<commit>` | 4010 | Con `FHS_CALC_NODES` y `FHS_ANNOUNCE_ADDRS` |
+| Bastion | `fhs-navigator` | `galaxia-agent:<commit>` | 4010 | Con `FHS_COMMAND_NODES` y `FHS_ANNOUNCE_ADDRS` |
 
 ## Build
 
@@ -47,7 +47,7 @@ podman run -d --name fhs-satellite-web --restart always -p 8444:443 \
 ```
 
 Navigator (Bastion): `scripts/calc/deploy-navigator.sh <commit> [DID,...]`. Por defecto usa
-`FHS_CALC_NODES=*` (autodescubrimiento: cualquier nodo que se anuncie con la capacidad); con una
+`FHS_COMMAND_NODES=*` (autodescubrimiento: cualquier nodo cuyo anuncio firmado declare comandos del registro); con una
 lista de DIDs solo esos pueden ganar. El DID aparece en la página del teléfono (botón "Copiar").
 El script deja la reversa `fhs-navigator-pre-<commit>` (detenida, sin reinicio automático).
 
@@ -78,7 +78,22 @@ Firewall (lo aplica el dueño; requiere sudo): `sudo ufw allow from 192.168.1.0/
 
 - El anuncio del Navigator debe traer `/ip4/192.168.1.139/tcp/4010/tls/ws` (no `0.0.0.0`).
 - `curl -sk https://192.168.1.239:8444/p2p-config.json` devuelve el bootstrap.
-- Con una lista en `FHS_CALC_NODES`, un nodo que no esté en ella nunca gana, aunque puje.
+- Con una lista en `FHS_COMMAND_NODES`, un nodo que no esté en ella no registra comandos ni gana, aunque puje.
+
+## Comandos autodescubiertos (SPEC-CMD-0001, DEC-0100)
+
+El Navigator no tiene ningún comando cableado. El teléfono declara `/calc` en el `Beacon.commands`
+de su anuncio firmado (nombre, argumentos tipados, forma del resultado); el Navigator lo admite si
+la capacidad está en el registro cerrado (`idl/command-capabilities.json`) y el operador lo permite
+(`FHS_COMMAND_NODES`; las capacidades `trusted` exigen además `FHS_TRUSTED_NODES`).
+
+- `/ayuda` (local, sin red) lista los comandos vigentes y los conflictos.
+- Un `/nombre` que ningún nodo ofrece ahora (p. ej. `/leer`) se responde localmente y **no llega al
+  LLM**. `//texto` envía el literal `/texto` al modelo.
+- El Portal autocompleta al escribir `/` con la lista que informa el Navigator (`commands.available`).
+- Variables: `FHS_COMMAND_NODES` (`*` o DIDs; vacío = sin comandos abiertos), `FHS_COMMAND_REGISTRY`
+  (ruta de un registro alterno; si no valida, el Navigator no arranca), `FHS_TRUSTED_NODES`.
+- Orden de despliegue (la spec): SDK/IDL → Atlas → Navigator → nodo móvil → Portal.
 
 ## Autorización por uso (SPEC-AUTH-0001, DEC-0099)
 

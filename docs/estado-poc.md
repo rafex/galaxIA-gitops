@@ -22,7 +22,7 @@ quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 
 | Novedad | Detalle |
 |---|---|
-| **Nodo móvil** (DEC-0097) | Página servida desde la ThinkPad (`:8444`); el navegador del teléfono es un nodo libp2p que se anuncia con `math.arithmetic.solve`, puja y ejecuta en WASM. Autodescubierto: el Navigator corre con `FHS_CALC_NODES=*` |
+| **Nodo móvil** (DEC-0097) | Página servida desde la ThinkPad (`:8444`); el navegador del teléfono es un nodo libp2p que se anuncia con `math.arithmetic.solve`, puja y ejecuta en WASM. Autodescubierto: el Navigator corre con `FHS_COMMAND_NODES=*` |
 | **Regla de despacho** (DEC-0096) | Ninguna misión sin oferta, puja y asignación; el provider móvil rechaza lo que no tenga asignación válida (firma, mismo Navigator, vigencia, un solo uso) |
 | **Autorización por uso** | `/calc` muestra una tarjeta con el nodo y qué se enviará; "Rechazar" o vencer (60 s) no publica nada. OCR, RAG y KB aún no la piden |
 | **Datos operativos en el teléfono** | Tabla de misiones (estado y tiempos) y recursos del dispositivo; nunca la expresión ni el resultado |
@@ -36,7 +36,7 @@ quedaron detenidos como reversa (`*-ts-rollback`, `*-pre-<commit>`).
 | Equipo | Contenedores | Código desplegado | Nota |
 |---|---|---|---|
 | Bastion `.139` | `fhs-atlas` | Core `c5f8ec3` (`rust/atlas`) | Mismo PeerId; reenvía los anuncios vigentes a cada suscriptor nuevo |
-| | `fhs-navigator` | galaxIA-agent `4a6b6a4` | `/calc`, autodescubrimiento (`FHS_CALC_NODES=*`), respuestas breves. IPFS con libro de pines en `/data/ipfs-pins.json`. Reversa: `fhs-navigator-pre-4a6b6a4` |
+| | `fhs-navigator` | galaxIA-agent `4a6b6a4` | `/calc`, autodescubrimiento (`FHS_COMMAND_NODES=*`), respuestas breves. IPFS con libro de pines en `/data/ipfs-pins.json`. Reversa: `fhs-navigator-pre-4a6b6a4` |
 | | `fhs-ipfs` | Kubo `v0.43.1` | Red pública, swarm `4101`, API en loopback con tokens |
 | | `fhs-star` | satellite-star `3f2721c` (`rust/star`) | `MODEL_ID=Qwen3.5-2B-Q4_K_M` |
 | | `llama-server` (`systemd --user`) | llama.cpp `7fe450e` | **Qwen3.5-2B** Q4_K_M, `--reasoning off`, 4 hilos: ~26 tok/s leyendo el prompt y ~13 generando (`llama-bench`). 63 °C |
@@ -150,7 +150,7 @@ artículo 3), binario con AVX, 4 hilos:
   La primera pregunta tras un rato inactivo es más lenta.
 - **El nodo móvil solo anuncia con la página visible**: en segundo plano o con
   la pantalla bloqueada deja de anunciarse y de pujar (el anuncio vence en
-  ≤ 60 s). Con `FHS_CALC_NODES=*` cualquier nodo de la LAN que se anuncie con
+  ≤ 60 s). Con `FHS_COMMAND_NODES=*` cualquier nodo de la LAN que se anuncie con
   la capacidad puede ganar; el único control es la autorización del usuario.
 - **La autorización reutiliza `kb.recommended`/`kb.decision`** con una marca en
   el texto; faltan los mensajes propios en el IDL. OCR, RAG y KB aún no piden

@@ -72,7 +72,7 @@ un nodo libp2p: marca a Atlas y al Navigator, se anuncia con la capacidad
 `math.arithmetic.solve` y puja por las misiones. No escucha conexiones: el
 Navigator abre el stream **sobre la conexión que el teléfono inició**
 (`provider_multiaddrs` vacías; PeerId derivado del DID). El nodo se descubre
-solo: el Navigator corre con `FHS_CALC_NODES=*` y toma cualquier satélite
+solo: el Navigator corre con `FHS_COMMAND_NODES=*` y toma cualquier satélite
 anunciado, con anuncio vigente y conexión viva.
 
 ![/calc de punta a punta](diagramas/nodo-movil-calc.svg)

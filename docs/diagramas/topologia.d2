@@ -80,7 +80,7 @@ thinkpad: "ThinkPad · .239\nx86_64 · 15 GB · podman rootless" {
 bastion: "Bastion · .139\nx86_64 · 8 núcleos · 15 GB · podman rootless" {
   class: host
   atlas: "fhs-atlas\nbootstrap · P2P :4001 · API :8081" {class: svc}
-  navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090\nsubasta · /calc · FHS_CALC_NODES=*" {class: svc}
+  navigator: "fhs-navigator\norquestador · P2P :4010 · API :8090\nsubasta · /calc · FHS_COMMAND_NODES=*" {class: svc}
   star: "fhs-star\nLLM provider · P2P :4002" {class: svc}
   llama: "llama-server\nQwen3.5-2B · :43110" {class: llm}
   ipfs: "fhs-ipfs (Kubo)\nadjuntos · red pública" {class: store}
